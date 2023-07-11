@@ -1,18 +1,9 @@
 #![allow(unused)]
 //
 
-use crate::{
-    lang::*,
-    text::*,
-};
 use reqwest::{
     header,
-    Method,
-};
-use std::{
-    env,
-    fmt,
-    collections::HashMap,
+    blocking::Response, StatusCode,
 };
 use serde::Deserialize;
 use thiserror::Error;
@@ -30,11 +21,26 @@ pub struct DeepL {
 /// Alias Result<T, E> to Result<T, [`Error`]>
 type Result<T, E = Error> = std::result::Result<T, E>;
 
-/// Representing error during interaction with DeepL
+/// Crate error handler
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("MyErr: {0}")]
-    MyError(String)
+    #[error("{0}")]
+    Client(String),
+    #[error("{0} {1}")]
+    Server(StatusCode, String),
+    #[error("error deserializing response")]
+    Deserialize,
+    #[error("error sending request")]
+    Request,
+    #[error("invalid language")]
+    InvalidLanguage,
+    #[error("invalid response")]
+    InvalidResponse,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ServerError {
+    message: String,
 }
 
 /// Information about API usage & limits for this account.
@@ -112,13 +118,24 @@ impl DeepL {
 
         let resp = self.client.get(url)
             .send()
-            .map_err(|e| Error::MyError(e.to_string()))?;
+            .map_err(|_| Error::Request)?;
 
         let usage: Usage = resp.json()
-            .map_err(|e| Error::MyError(e.to_string()))?;
+            .map_err(|_| Error::Deserialize)?;
 
         Ok(usage)
     }
+}
+
+fn convert<T>(resp: reqwest::blocking::Response) -> Result<T> {
+    let code = resp.status();
+    if code.is_client_error() {
+        return Err(Error::Client(code.to_string()))
+    }
+    let resp: ServerError = resp.json()
+        .map_err(|_| Error::InvalidResponse)?;
+
+    Err(Error::Server(code, resp.message))
 }
 
 #[cfg(test)]
