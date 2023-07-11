@@ -1,18 +1,21 @@
-#![allow(unused)]
+// #![allow(unused)]
 //
 
 use reqwest::{
     header,
-    blocking::Response, StatusCode,
+    StatusCode,
 };
 use serde::Deserialize;
 use thiserror::Error;
 
 pub mod lang;
 pub mod text;
+pub mod doc;
+pub mod glos;
 
 static APP_USER_AGENT: &'static str = "deeprl/0.1.0";
 
+/// The DeepL client struct
 pub struct DeepL {
     client: reqwest::blocking::Client,
     url: String,
@@ -21,7 +24,7 @@ pub struct DeepL {
 /// Alias Result<T, E> to Result<T, [`Error`]>
 type Result<T, E = Error> = std::result::Result<T, E>;
 
-/// Crate error handler
+/// Crate error variants
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("{0}")]
@@ -127,6 +130,7 @@ impl DeepL {
     }
 }
 
+/// Attempt to parse an error in case of unsuccessful request
 fn convert<T>(resp: reqwest::blocking::Response) -> Result<T> {
     let code = resp.status();
     if code.is_client_error() {

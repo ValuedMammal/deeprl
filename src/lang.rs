@@ -4,7 +4,6 @@ use std::str::FromStr;
 use super::Error;
 use super::Result;
 use super::DeepL;
-use super::convert;
 use serde::Deserialize;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -19,8 +18,9 @@ pub struct LangInfo {
     pub language: String,
     /// English name of the language, e.g. `English (America)`
     pub name: String,
-    /// 
-    pub supports_formality: bool,
+    /// Whether language supports setting a formality preference 
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub supports_formality: Option<bool>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -37,9 +37,9 @@ pub enum Language {
       EL,
       /// English (source language)
       EN,
-      /// English Great Britain (target language)
+      /// English British (target language)
       ENGB,
-      /// English USA (target language)
+      /// English American (target language)
       ENUS,
       /// Spanish
       ES,
@@ -71,7 +71,7 @@ pub enum Language {
       PL,
       /// Portuguese (source language)
       PT,
-      /// Portuguese Brazil (target language)
+      /// Portuguese Brazilian (target language)
       PTBR,
       /// Portuguese European (target language)
       PTPT,
@@ -184,6 +184,19 @@ impl fmt::Display for Language {
     }
 }
 
+impl LangInfo {
+    /// Provide serde with a default value for `supports_formality`, since
+    /// the field is only returned for target langs (not source).
+    /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
+    pub fn new(language: String, name: String) -> Self {
+        Self { 
+            language, 
+            name, 
+            supports_formality: None, 
+        }
+    }
+}
+
 impl DeepL {
     pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LangInfo>> {
         let url = format!("{}/languages", self.url);
@@ -193,8 +206,7 @@ impl DeepL {
             LanguageType::Target => "target",
         };
 
-        // get
-        // query "type"
+        // get, query "type"
         let q = vec![
             ("type", kind)
         ];
@@ -204,12 +216,13 @@ impl DeepL {
             .send()
             .map_err(|_| Error::Request)?;
 
-        if !resp.status().is_server_error() && !resp.status().is_client_error() {
+        if !resp.status().is_success() {
+            return super::convert(resp)
+        } else {
             let result: Vec<LangInfo> = resp.json()
                 .map_err(|_| Error::Deserialize)?;
-            return Ok(result)
-        } else {
-            convert(resp)
+            
+            Ok(result)
         }
     }
 }

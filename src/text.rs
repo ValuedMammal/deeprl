@@ -2,7 +2,6 @@
 use std::collections::HashMap;
 use super::{
     builder,
-    convert,
     DeepL,
     Error,
     lang::*,
@@ -10,17 +9,25 @@ use super::{
 use serde::Deserialize;
 use reqwest::Method;
 
+#[derive(Copy, Clone)]
 pub enum SplitSentences {
     None,
     Default,
     NoNewlines,
 }
 
+#[derive(Copy, Clone)]
 pub enum Formality {
     More,
     Less,
     PreferMore,
     PreferLess,
+}
+
+#[derive(Copy, Clone)]
+pub enum TagHandling {
+    Xml,
+    Html,
 }
 
 #[derive(Debug, Deserialize)]
@@ -55,6 +62,15 @@ impl AsRef<str> for Formality {
     }
 }
 
+impl AsRef<str> for TagHandling {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Xml => "xml",
+            Self::Html => "html",
+        }
+    }
+}
+
 // TextOptions builder
 builder! {
     Text {
@@ -67,29 +83,54 @@ builder! {
             preserve_formatting: bool,
             formality: Formality,
             glossary_id: String,
+            tag_handling: TagHandling,
+            non_splitting_tags: String,
+            outline_detection: bool,
+            splitting_tags: String,
+            ignore_tags: String,
         };
     } -> Self;
 }
 
 impl TextOptions {
-   pub fn to_form(&self) -> HashMap<&'static str, String> {
+   pub fn to_form(self) -> HashMap<&'static str, String> {
         let mut form = HashMap::new();
+        
         form.insert("target_lang", self.target_lang.to_string());
 
-        if let Some(src) = &self.source_lang {
+        if let Some(src) = self.source_lang {
             form.insert("source_lang", src.as_ref().to_string());
         }
-        if let Some(ss) = &self.split_sentences {
+        if let Some(ss) = self.split_sentences {
             form.insert("split_sentences", ss.as_ref().to_string());
         }
-        if let Some(pf) = &self.preserve_formatting {
-            form.insert("preserve_formatting", pf.to_string());
+        if let Some(pf) = self.preserve_formatting {
+            if pf {
+                form.insert("preserve_formatting", "1".to_string());
+            }
         }
-        if let Some(fm) = &self.formality {
+        if let Some(fm) = self.formality {
             form.insert("formality", fm.as_ref().to_string());
         }
-        if let Some(g) = &self.glossary_id {
-            form.insert("glossary_id", g.to_owned());
+        if let Some(g) = self.glossary_id {
+            form.insert("glossary_id", g);
+        }
+        if let Some(th) = self.tag_handling {
+            form.insert("tag_handling", th.as_ref().to_string());
+        }
+        if let Some(non) = self.non_splitting_tags {
+            form.insert("non_splitting_tags", non);
+        }
+        if let Some(od) = self.outline_detection {
+            if !od {
+                form.insert("outline_detection", "0".to_string());
+            }
+        }
+        if let Some(sp) = self.splitting_tags {
+            form.insert("non_splitting_tags", sp);
+        }
+        if let Some(ig) = self.ignore_tags {
+            form.insert("non_splitting_tags", ig);
         }
 
         form
@@ -105,20 +146,18 @@ impl DeepL {
             params.insert("text", t);
         }
 
-        let req = self.client.request(Method::POST, url)
-            .form(&params);
-
-        let resp = req.send()
-            .map_err(|_| Error::Request)?;
-        
-
-        if !resp.status().is_server_error() && !resp.status().is_client_error() {
-        let result: TranslateTextResult = resp.json()
+        let resp = self.client.request(Method::POST, url)
+            .form(&params)
+            .send()
             .map_err(|_| Error::Deserialize)?;
-            
-            return Ok(result)
+
+        if !resp.status().is_success() {
+            return super::convert(resp)
         } else {
-            convert(resp)
+            let result: TranslateTextResult = resp.json()
+                .map_err(|_| Error::Deserialize)?;
+            
+            Ok(result)
         }
     }
 }
