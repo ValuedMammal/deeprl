@@ -1,10 +1,6 @@
-//
-use std::fmt;
-use std::str::FromStr;
-use super::Error;
-use super::Result;
-use super::DeepL;
 use serde::Deserialize;
+use std::{fmt, str::FromStr};
+use super::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum LanguageType {
@@ -13,7 +9,7 @@ pub enum LanguageType {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct LangInfo {
+pub struct LanguageInfo {
     /// Language code (EN, DE, etc.)
     pub language: String,
     /// English name of the language, e.g. `English (America)`
@@ -184,7 +180,7 @@ impl fmt::Display for Language {
     }
 }
 
-impl LangInfo {
+impl LanguageInfo {
     /// Provide serde with a default value for `supports_formality`, since
     /// the field is only returned for target langs (not source).
     /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
@@ -198,7 +194,7 @@ impl LangInfo {
 }
 
 impl DeepL {
-    pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LangInfo>> {
+    pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>> {
         let url = format!("{}/languages", self.url);
 
         let kind = match lang_type {
@@ -218,13 +214,9 @@ impl DeepL {
 
         if !resp.status().is_success() {
             return super::convert(resp)
-        } else {
-            let result: Vec<LangInfo> = resp.json()
-                .map_err(|_| Error::Deserialize)?;
-            
-            Ok(result)
         }
+        
+        resp.json()
+            .map_err(|_| Error::Deserialize)            
     }
 }
-
-

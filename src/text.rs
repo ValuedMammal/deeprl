@@ -1,13 +1,9 @@
-//
-use std::collections::HashMap;
-use super::{
-    builder,
-    DeepL,
-    Error,
-    lang::*,
-};
-use serde::Deserialize;
 use reqwest::Method;
+use serde::Deserialize;
+use std::collections::HashMap;
+
+use super::*;
+use crate::lang::Language;
 
 #[derive(Copy, Clone)]
 pub enum SplitSentences {
@@ -153,11 +149,9 @@ impl DeepL {
 
         if !resp.status().is_success() {
             return super::convert(resp)
-        } else {
-            let result: TranslateTextResult = resp.json()
-                .map_err(|_| Error::Deserialize)?;
-            
-            Ok(result)
         }
+        
+        resp.json()
+            .map_err(|_| Error::Deserialize)
     }
 }

@@ -1,14 +1,12 @@
+use reqwest::blocking::multipart;
+use serde::Deserialize;
 use std::path::PathBuf;
 
-use crate::DeepL;
-
-use super::builder;
-use super::lang::*;
-use super::text::*;
-use super::Result;
-use super::Error;
-use serde::Deserialize;
-use reqwest::blocking::multipart;
+use super::*;
+use crate::{
+    lang::*,
+    text::*,
+};
 
 /// Document handle
 #[derive(Debug, Deserialize)]
@@ -111,13 +109,12 @@ impl DeepL {
 
         if !resp.status().is_success() {
             return super::convert(resp)
-        } else {
-            let doc: Document = resp.json()
-                .map_err(|_| Error::Deserialize)?;
-
-            Ok(doc)
         }
+        
+        resp.json()
+            .map_err(|_| Error::Deserialize)
     }
+
     /// Get document translation status
     pub fn document_status(&self, doc: &Document) -> Result<DocumentStatus> {
         let doc_id = doc.document_id.clone();
@@ -135,13 +132,12 @@ impl DeepL {
 
         if !resp.status().is_success() {
             return super::convert(resp)
-        } else {
-            let status: DocumentStatus = resp.json()
-                .map_err(|_| Error::Deserialize)?;
+        }
+        
+        resp.json()
+            .map_err(|_| Error::Deserialize)
+    }
 
-            Ok(status)
-        }        
-    }        
     /// Download translated document
     pub fn document_download(&self, doc: Document, out_file: Option<PathBuf>) -> Result<PathBuf> {
         let doc_id = doc.document_id;
@@ -158,20 +154,20 @@ impl DeepL {
 
         if !resp.status().is_success() {
             return super::convert(resp)
-        } else {
-            // write out file
-            let mut buf: Vec<u8> = Vec::with_capacity(100 * 1024);
-            resp.copy_to(&mut buf)
-                .map_err(|_| Error::Client("could not copy response data".to_string()))?;
-
-            let path = out_file.unwrap_or(
-                PathBuf::from(format!("{doc_id}.txt"))
-            );
-            
-            std::fs::write(&path, buf)
-                .map_err(|_| Error::Client("failed to write out file".to_string()))?;
-    
-            Ok(path)
         }
+
+        // write out file
+        let mut buf: Vec<u8> = Vec::with_capacity(100 * 1024);
+        resp.copy_to(&mut buf)
+            .map_err(|_| Error::Client("could not copy response data".to_string()))?;
+
+        let path = out_file.unwrap_or(
+            PathBuf::from(doc_id)
+        );
+        
+        std::fs::write(&path, buf)
+            .map_err(|_| Error::Client("failed to write out file".to_string()))?;
+
+        Ok(path)
     }
 }

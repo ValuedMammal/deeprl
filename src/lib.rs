@@ -1,6 +1,3 @@
-// #![allow(unused)]
-//
-
 use reqwest::{
     header,
     StatusCode,
@@ -25,7 +22,7 @@ pub struct DeepL {
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Crate error variants
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub enum Error {
     #[error("{0}")]
     Client(String),

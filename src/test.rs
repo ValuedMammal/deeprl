@@ -1,13 +1,18 @@
-use crate::lang::*;
-use crate::text::*;
-use crate::doc::*;
-use std::path::PathBuf;
+use std::{
+    env, 
+    str::FromStr,
+    path::PathBuf,
+    thread,
+    time::Duration,
+};
 
-//
 use super::*;
-use std::{env, str::FromStr};
-use std::thread;
-use std::time::Duration;
+use crate::{
+    lang::*,
+    text::*,
+    doc::*,
+    glos::*,
+};
 
 #[test]
 fn usage() {
@@ -168,4 +173,77 @@ fn document() {
     let content = std::fs::read_to_string(out_file).unwrap();
     assert_eq!(content, "Guten Morgen");
 }
+
+#[test]
+fn glossary_pairs() {
+    // get supported glossary language pairs
+    let dl = DeepL::new(
+        env::var("DEEPL_API_KEY").unwrap()
+    );
+
+    let result = dl.glossary_languages().unwrap();
+    let pairs = result.supported_languages;
+    assert!(!pairs.is_empty());
+    let first = &pairs[0];
+    assert!(!first.source_lang.is_empty());
+}
+
+#[test]
+fn glossaries() {
+    // list available glossaries
+    let dl = DeepL::new(
+        env::var("DEEPL_API_KEY").unwrap()
+    );
+
+    let result = dl.glossaries().unwrap();
+    let glossaries = result.glossaries;
+    if !glossaries.is_empty() {
+        let glos = &glossaries[0];
+        assert!(glos.entry_count > 0);
+    }
+}
+
+#[test]
+fn glossary() {
+    let dl = DeepL::new(
+        env::var("DEEPL_API_KEY").unwrap()
+    );
+     
+    // test create
+    let name = "my_glossary".to_string();
+    let src = Language::EN;
+    let trg = Language::IT;
+    let entries = "goodbye,arrivederci".to_string();
+    let fmt = GlossaryEntriesFormat::Csv;
     
+    let glossary = dl.glossary_new(name, src, trg, entries, fmt).unwrap();
+    assert_eq!(glossary.entry_count, 2);
+
+    // test fetch entries
+    let glos_id = glossary.glossary_id;
+    let resp = dl.glossary_entries(&glos_id);
+    assert!(resp.is_ok());
+    let entry = resp.unwrap();
+    assert!(entry.contains("hello\tciao"));
+
+    // test translate with glossary
+    let opts = TextOptions::new(Language::IT)
+        .source_lang(Language::EN)
+        .preserve_formatting(true)
+        .glossary_id(glos_id.clone());
+
+    let text = vec!["goodbye".to_string()];
+    let result = dl.translate(opts, text).unwrap();
+    let translations = result.translations;
+    assert_eq!(translations[0].text, "arrivederci");
+
+    // test delete
+    let _: () = dl.glossary_del(&glos_id).unwrap();
+    thread::sleep(Duration::from_secs(1));
+    
+    // deleted glossary id is 404
+    let code = StatusCode::NOT_FOUND;
+    let expect = Error::Client(code.to_string());
+    let resp = dl.glossary_info(&glos_id);
+    assert_eq!(resp.unwrap_err(), expect);
+}
