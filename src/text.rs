@@ -141,10 +141,10 @@ impl TextOptions {
             }
         }
         if let Some(sp) = self.splitting_tags {
-            form.insert("non_splitting_tags", sp);
+            form.insert("splitting_tags", sp);
         }
         if let Some(ig) = self.ignore_tags {
-            form.insert("non_splitting_tags", ig);
+            form.insert("ignore_tags", ig);
         }
 
         form
