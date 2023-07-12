@@ -204,7 +204,7 @@ fn glossaries() {
 }
 
 #[test]
-fn glossary() {
+fn glossary_all() {
     let dl = DeepL::new(
         env::var("DEEPL_API_KEY").unwrap()
     );
@@ -217,14 +217,14 @@ fn glossary() {
     let fmt = GlossaryEntriesFormat::Csv;
     
     let glossary = dl.glossary_new(name, src, trg, entries, fmt).unwrap();
-    assert_eq!(glossary.entry_count, 2);
+    assert_eq!(glossary.entry_count, 1);
 
     // test fetch entries
     let glos_id = glossary.glossary_id;
     let resp = dl.glossary_entries(&glos_id);
     assert!(resp.is_ok());
     let entry = resp.unwrap();
-    assert!(entry.contains("hello\tciao"));
+    assert!(entry.contains("goodbye\tarrivederci"));
 
     // test translate with glossary
     let opts = TextOptions::new(Language::IT)
