@@ -2,6 +2,10 @@
 name = "deeprl"
 version = "0.1.0"
 edition = "2021"
+description = "DeepL client library with all the things (blocking)"
+license = "MIT"
+documentation = "https://docs.rs/deeprl"
+repository = "https://github.com/ValuedMammal/deeprl"
 
 [dependencies]
 paste = "1.0.13"
