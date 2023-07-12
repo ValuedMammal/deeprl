@@ -1,3 +1,5 @@
+//! # Translate documents
+//! 
 use reqwest::blocking::multipart;
 use serde::Deserialize;
 use std::path::PathBuf;

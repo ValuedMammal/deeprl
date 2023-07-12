@@ -1,3 +1,5 @@
+//! # Supported language variants
+//! 
 use serde::Deserialize;
 use std::{fmt, str::FromStr};
 use super::*;

@@ -1,3 +1,5 @@
+//! # Manage glossaries
+//! 
 use reqwest::header;
 use serde::Deserialize;
 use std::{fmt, collections::HashMap};

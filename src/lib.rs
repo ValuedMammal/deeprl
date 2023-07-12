@@ -1,11 +1,55 @@
 //! # deeprl
 //! 
-//! My docs
+//! Access the DeepL translation engine through a quick and reliable interface. We aim to provide the full suite of tools DeepL offers.
+//! See the [official docs](https://www.deepl.com/en/docs-api) for detailed resources.
 //! 
-//! # Usage
+//! # Note
+//! This crate uses a blocking http client, and as such is only suitable for use in synchronous (blocking) applications.
+//! If you intend to use the library functions in an async app, there is a [crate](https://docs.rs/deepl/latest/deepl/) for that.
+//!  
+//! # Examples
+//! Create a new client with a valid API token to access the associated methods. For instance, you may wish to translate a simple text string to some target language.
+//! ```
+//! use deeprl::{DeepL, Language, TextOptions};
+//! 
+//! let key = std::env::var("DEEPL_API_KEY").unwrap();
+//! let dl = DeepL::new(key);
+//! 
+//! // Translate 'good morning' to German
+//! let opt = TextOptions::new(Language::DE);
+//! 
+//! let text = vec![
+//!     "good morning".to_string(),
+//! ];
+//! 
+//! let result = dl.translate(opt, text).unwrap();
+//! assert!(!result.translations.is_empty());
+//!
+//! let translation = &result.translations[0];
+//! assert_eq!(translation.text, "Guten Morgen");
+//! ```
+//! 
+//! As a helpful sanity check, make sure you're able to return account usage statistics.
+//! ```
+//! use deeprl::DeepL;
+//! 
+//! let dl = DeepL::new(
+//!     std::env::var("DEEPL_API_KEY").unwrap()
+//! );
+//! 
+//! let usage = dl.usage().unwrap();
+//! assert!(usage.character_limit > 0);
+//! 
+//! let count = usage.character_count;
+//! let limit = usage.character_limit;
+//! println!("Used: {count}/{limit}");
+//! // Used: 42/500000
+//! ```
+//! 
+//! `DeepL` also allows translating documents and creating custom glossaries.
 //!
 //! # License
-//!
+//! This project is licenced under MIT license.
 use reqwest::{
     header,
     StatusCode,
@@ -17,6 +61,10 @@ pub mod lang;
 pub mod text;
 pub mod doc;
 pub mod glos;
+pub use self::lang::Language;
+pub use self::text::TextOptions;
+pub use self::doc::{Document, DocumentOptions};
+pub use self::glos::Glossary;
 
 // Sets the user agent request header value, e.g. 'deeprl/0.1.0'
 static APP_USER_AGENT: &str = concat!(
@@ -26,11 +74,9 @@ static APP_USER_AGENT: &str = concat!(
 );
 
 /// The `DeepL` client struct
-/// 
-/// Note: This type uses a blocking http client, and as such is only suitable for use in synchronous applications.
 pub struct DeepL {
     client: reqwest::blocking::Client,
-    url: String,
+    url: reqwest::Url,
 }
 
 /// Crate Result type
@@ -59,8 +105,7 @@ pub struct ServerError {
     message: String,
 }
 
-/// Represents API usage & account limits.
-/// Currently assumes an individual developer account.
+/// API usage & account limits. Currently assumes an individual developer account.
 #[derive(Debug, Deserialize)]
 pub struct Usage {
     /// Characters translated so far in the current billing period
@@ -114,11 +159,16 @@ impl DeepL {
     /// Create a new instance of `DeepL` from an API key.
     ///
     /// # Panics
-    /// - If unable to build a `reqwest::blocking::Client`
     /// - If `key` contains invalid characters causing a failure to create a `reqwest::header::HeaderValue`
-    /// 
+    /// - If unable to build a `reqwest::blocking::Client` such as when called from an async runtime
     pub fn new(key: String) -> Self {
-        let url = "https://api-free.deepl.com/v2".to_owned();
+        let base = if key.ends_with(":fx") {
+            "https://api-free.deepl.com/v2"
+        } else {
+            "https://api.deepl.com/v2"
+        };
+        let url = reqwest::Url::parse(base).unwrap();
+
         let auth = format!("DeepL-Auth-Key {}", &key);
 
         let mut auth_val = header::HeaderValue::from_str(&auth)
@@ -132,7 +182,7 @@ impl DeepL {
             .user_agent(APP_USER_AGENT)
             .default_headers(headers)
             .build()
-            .expect("failed to build req client");
+            .expect("failed to build request client");
         
         DeepL { client, url }
     }

@@ -1,6 +1,7 @@
+//! # Translate text
+//!
 use serde::Deserialize;
 use std::collections::HashMap;
-
 use super::*;
 use crate::lang::Language;
 
