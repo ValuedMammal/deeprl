@@ -19,6 +19,8 @@ pub enum SplitSentences {
 /// Sets whether the translation engine should lean towards formal or informal language
 #[derive(Copy, Clone)]
 pub enum Formality {
+    /// Default formality
+    Default,
     /// More formal
     More,
     /// Less formal
@@ -67,11 +69,28 @@ impl AsRef<str> for SplitSentences {
 impl AsRef<str> for Formality {
     fn as_ref(&self) -> &str {
         match self {
+            Self::Default => "default",
             Self::More => "more",
             Self::Less => "less",
             Self::PreferMore => "prefer_more",
             Self::PreferLess => "prefer_less",
         }
+    }
+}
+
+impl std::str::FromStr for Formality {
+    type Err = Error;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let fm = match s {
+            "more" => Self::More,
+            "less" => Self::Less,
+            "prefer_more" => Self::PreferMore,
+            "prefer_less" => Self::PreferLess,
+            _ => Self::Default,
+        };
+        
+        Ok(fm)
     }
 }
 
