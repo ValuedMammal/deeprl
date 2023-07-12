@@ -2,23 +2,39 @@ use serde::Deserialize;
 use std::{fmt, str::FromStr};
 use super::*;
 
-#[derive(Clone, Debug, PartialEq)]
+/// DeepL language type
+#[derive(Debug)]
 pub enum LanguageType {
     Source,
     Target,
 }
 
+/// Information about a supported language
 #[derive(Debug, Deserialize)]
 pub struct LanguageInfo {
     /// Language code (EN, DE, etc.)
     pub language: String,
-    /// English name of the language, e.g. `English (America)`
+    /// Name of the language in English
     pub name: String,
-    /// Whether language supports setting a formality preference 
+    /// Denotes formality support in case of target language
     #[serde(skip_serializing_if = "Option::is_none")]
     pub supports_formality: Option<bool>,
 }
 
+/// Language variants. 
+/// 
+/// # Errors
+/// 
+/// Please note, while many `Language` variants are interchangeable as both source and target languages, there are some exceptions.
+/// The following may only be used as `Source` languages:
+/// - `EN`
+/// - `PT`
+/// 
+/// The following may only be used as `Target` languages:
+/// - `ENUS`
+/// - `ENGB`
+/// - `PTBR`
+/// - `PTPT`
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Language {
       /// Bulgarian
@@ -93,7 +109,7 @@ impl FromStr for Language {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let lang = match s {
+        let lang = match s.to_uppercase().as_str() {
             "BG" => Language::BG,
             "CS" => Language::CS,
             "DA" => Language::DA,
@@ -181,10 +197,11 @@ impl fmt::Display for Language {
 }
 
 impl LanguageInfo {
-    /// Provide serde with a default value for `supports_formality`, since
-    /// the field is only returned for target langs (not source).
+    /// Provides serde with a default value for `supports_formality`, since
+    /// the field is only returned for target lang (not source).
     /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
-    pub fn new(language: String, name: String) -> Self {
+    #[allow(unused)]
+    fn new(language: String, name: String) -> Self {
         Self { 
             language, 
             name, 
@@ -194,6 +211,9 @@ impl LanguageInfo {
 }
 
 impl DeepL {
+    /// GET /languages
+    /// 
+    /// Get information on supported languages
     pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>> {
         let url = format!("{}/languages", self.url);
 

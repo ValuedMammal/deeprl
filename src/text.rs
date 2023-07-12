@@ -1,39 +1,55 @@
-use reqwest::Method;
 use serde::Deserialize;
 use std::collections::HashMap;
 
 use super::*;
 use crate::lang::Language;
 
+/// Sets whether the translation engine should first split the input into sentences
 #[derive(Copy, Clone)]
 pub enum SplitSentences {
+    /// No splitting
     None,
+    /// By default, split on punctuation and newlines
     Default,
+    /// Split on punctuation only
     NoNewlines,
 }
 
+/// Sets whether the translation engine should lean towards formal or informal language
 #[derive(Copy, Clone)]
 pub enum Formality {
+    /// More formal
     More,
+    /// Less formal
     Less,
+    /// More formal if supported by target language, else default
     PreferMore,
+    /// Less formal if supported by target language, else default
     PreferLess,
 }
 
+/// Sets which kind of tags should be handled
 #[derive(Copy, Clone)]
 pub enum TagHandling {
+    /// Enable XML tag handling
     Xml,
+    /// Enable HTML tag handling
     Html,
 }
 
+/// An individual translation
 #[derive(Debug, Deserialize)]
 pub struct Translation {
+    /// Detected source language
     pub detected_source_language: String,
+    /// Translated text
     pub text: String
 }
 
+/// Translation result
 #[derive(Debug, Deserialize)]
 pub struct TranslateTextResult {
+    /// List of translations
     pub translations: Vec<Translation>
 }
 
@@ -89,7 +105,8 @@ builder! {
 }
 
 impl TextOptions {
-   pub fn to_form(self) -> HashMap<&'static str, String> {
+   /// Creates a map of request params from an instance of `TextOptions`
+   fn to_form(self) -> HashMap<&'static str, String> {
         let mut form = HashMap::new();
         
         form.insert("target_lang", self.target_lang.to_string());
@@ -134,7 +151,13 @@ impl TextOptions {
 }
 
 impl DeepL {
-    pub fn translate(&self, opt: TextOptions, text: Vec<String>) -> Result<TranslateTextResult, Error> {
+    /// POST /translate
+    /// 
+    /// Translate one or more text strings
+    pub fn translate(&self, opt: TextOptions, text: Vec<String>) -> Result<TranslateTextResult> {
+        if text.is_empty() || text[0].is_empty() {
+            return Err(Error::Client("empty text parameter".to_string()))
+        }
         let url = format!("{}/translate", self.url);
         let mut params = opt.to_form();
 
@@ -142,7 +165,7 @@ impl DeepL {
             params.insert("text", t);
         }
 
-        let resp = self.client.request(Method::POST, url)
+        let resp = self.client.post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::Deserialize)?;

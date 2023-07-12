@@ -1,3 +1,11 @@
+//! # deeprl
+//! 
+//! My docs
+//! 
+//! # Usage
+//!
+//! # License
+//!
 use reqwest::{
     header,
     StatusCode,
@@ -10,15 +18,22 @@ pub mod text;
 pub mod doc;
 pub mod glos;
 
-static APP_USER_AGENT: &'static str = "deeprl/0.1.0";
+// Sets the user agent request header value, e.g. 'deeprl/0.1.0'
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+);
 
-/// The DeepL client struct
+/// The `DeepL` client struct
+/// 
+/// Note: This type uses a blocking http client, and as such is only suitable for use in synchronous applications.
 pub struct DeepL {
     client: reqwest::blocking::Client,
     url: String,
 }
 
-/// Alias Result<T, E> to Result<T, [`Error`]>
+/// Crate Result type
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Crate error variants
@@ -38,20 +53,23 @@ pub enum Error {
     InvalidResponse,
 }
 
+/// Server error type
 #[derive(Debug, Deserialize)]
 pub struct ServerError {
     message: String,
 }
 
-/// Information about API usage & limits for this account.
+/// Represents API usage & account limits.
+/// Currently assumes an individual developer account.
 #[derive(Debug, Deserialize)]
 pub struct Usage {
-    /// How many characters were already translated in the current billing period.
+    /// Characters translated so far in the current billing period
     pub character_count: u64,
-    /// How many characters can be translated per billing period, based on the account settings.
+    /// Current maximum number of characters that can be translated per billing period
     pub character_limit: u64,
 }
 
+/// Self-implementing type builder
 #[macro_export]
 macro_rules! builder {
     (
@@ -67,7 +85,7 @@ macro_rules! builder {
         use paste::paste;
 
         paste! {
-            #[doc = "Builder type for `" $name "`"]
+            #[doc = "Builder type for `" [<$name Options>] "`"]
             pub struct [<$name Options>] {
                 $($must_field: $must_type,)+
                 $($opt_field: Option<$opt_type>,)+
@@ -93,6 +111,12 @@ macro_rules! builder {
 }
 
 impl DeepL {
+    /// Create a new instance of `DeepL` from an API key.
+    ///
+    /// # Panics
+    /// - If unable to build a `reqwest::blocking::Client`
+    /// - If `key` contains invalid characters causing a failure to create a `reqwest::header::HeaderValue`
+    /// 
     pub fn new(key: String) -> Self {
         let url = "https://api-free.deepl.com/v2".to_owned();
         let auth = format!("DeepL-Auth-Key {}", &key);
@@ -113,6 +137,9 @@ impl DeepL {
         DeepL { client, url }
     }
 
+    /// GET /usage
+    /// 
+    /// Get account usage
     pub fn usage(&self) -> Result<Usage> {
         let url = format!("{}/usage", self.url);
 

@@ -22,14 +22,14 @@ pub struct Document {
 pub struct DocumentStatus {
     /// A unique ID assigned to the uploaded document
     pub document_id: String,
-    /// A short description of the current state of the document translation process.
+    /// A short description of the current state of the document translation process
     pub status: DocState,
     /// Estimated number of seconds until the translation is done.
     /// This parameter is only included while status is "translating".
     pub seconds_remaining: Option<u64>,
-    /// The number of characters billed to your account.
+    /// The number of characters billed to your account
     pub billed_characters: Option<u64>,
-    /// A short description of the error, if available.
+    /// Description of the error, if available.
     /// This parameter may be included if an error occurred during translation.
     pub error_message: Option<String>,
 }
@@ -48,6 +48,7 @@ pub enum DocState {
     Error,
 }
 
+// DocumentOptions builder
 builder! {
     Document {
         @must{
@@ -64,6 +65,7 @@ builder! {
 }
 
 impl DocState {
+    /// Whether the document is done translating and ready to be downloaded
     pub fn is_done(&self) -> bool {
         match self {
             Self::Done => true,
@@ -73,6 +75,7 @@ impl DocState {
 }
 
 impl DocumentOptions {
+    /// Creates a multipart request form from an instance of `DocumentOptions`
     fn to_multipart(self) -> Result<multipart::Form> {
         let mut form = multipart::Form::new()
             .file("file", self.file_path).map_err(|_| Error::Client("failed to attach file".to_string()))?
@@ -96,7 +99,9 @@ impl DocumentOptions {
 }
 
 impl DeepL {
-    /// Upload document
+    /// POST /document
+    /// 
+    /// Upload a document
     pub fn document_upload(&self, opt: DocumentOptions) -> Result<Document> {
         let url = format!("{}/document", self.url);
 
@@ -115,6 +120,8 @@ impl DeepL {
             .map_err(|_| Error::Deserialize)
     }
 
+    /// POST /document/{document_id}
+    /// 
     /// Get document translation status
     pub fn document_status(&self, doc: &Document) -> Result<DocumentStatus> {
         let doc_id = doc.document_id.clone();
@@ -138,6 +145,8 @@ impl DeepL {
             .map_err(|_| Error::Deserialize)
     }
 
+    /// POST /document/{document_id}/result
+    ///
     /// Download translated document
     pub fn document_download(&self, doc: Document, out_file: Option<PathBuf>) -> Result<PathBuf> {
         let doc_id = doc.document_id;
