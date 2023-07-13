@@ -1,7 +1,7 @@
 //! # Translate documents
 //! 
 use reqwest::blocking::multipart;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use super::*;
@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Document handle
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Document {
     /// A unique ID assigned to the uploaded document
     pub document_id: String,
