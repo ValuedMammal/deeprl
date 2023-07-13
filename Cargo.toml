@@ -1,6 +1,6 @@
 [package]
 name = "deeprl"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "DeepL client library with all the things (blocking)"
 license = "MIT"
