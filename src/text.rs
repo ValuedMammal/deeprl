@@ -1,7 +1,6 @@
 //! # Translate text
 //!
 use serde::Deserialize;
-use std::collections::HashMap;
 use super::*;
 use crate::lang::Language;
 
@@ -126,44 +125,44 @@ builder! {
 
 impl TextOptions {
    /// Creates a map of request params from an instance of `TextOptions`
-   fn to_form(self) -> HashMap<&'static str, String> {
-        let mut form = HashMap::new();
+   fn to_form(self) -> Vec<(&'static str, String)> {
+        let mut form = vec![];
         
-        form.insert("target_lang", self.target_lang.to_string());
+        form.push(("target_lang", self.target_lang.to_string()));
 
         if let Some(src) = self.source_lang {
-            form.insert("source_lang", src.as_ref().to_string());
+            form.push(("source_lang", src.as_ref().to_string()));
         }
         if let Some(ss) = self.split_sentences {
-            form.insert("split_sentences", ss.as_ref().to_string());
+            form.push(("split_sentences", ss.as_ref().to_string()));
         }
         if let Some(pf) = self.preserve_formatting {
             if pf {
-                form.insert("preserve_formatting", "1".to_string());
+                form.push(("preserve_formatting", "1".to_string()));
             }
         }
         if let Some(fm) = self.formality {
-            form.insert("formality", fm.as_ref().to_string());
+            form.push(("formality", fm.as_ref().to_string()));
         }
         if let Some(g) = self.glossary_id {
-            form.insert("glossary_id", g);
+            form.push(("glossary_id", g));
         }
         if let Some(th) = self.tag_handling {
-            form.insert("tag_handling", th.as_ref().to_string());
+            form.push(("tag_handling", th.as_ref().to_string()));
         }
         if let Some(non) = self.non_splitting_tags {
-            form.insert("non_splitting_tags", non);
+            form.push(("non_splitting_tags", non));
         }
         if let Some(od) = self.outline_detection {
             if !od {
-                form.insert("outline_detection", "0".to_string());
+                form.push(("outline_detection", "0".to_string()));
             }
         }
         if let Some(sp) = self.splitting_tags {
-            form.insert("splitting_tags", sp);
+            form.push(("splitting_tags", sp));
         }
         if let Some(ig) = self.ignore_tags {
-            form.insert("ignore_tags", ig);
+            form.push(("ignore_tags", ig));
         }
 
         form
@@ -182,7 +181,7 @@ impl DeepL {
         let mut params = opt.to_form();
 
         for t in text {
-            params.insert("text", t);
+            params.push(("text", t));
         }
 
         let resp = self.client.post(url)
