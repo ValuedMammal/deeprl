@@ -1,6 +1,6 @@
 //! # Supported language variants
 //! 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 use super::*;
 
@@ -12,7 +12,7 @@ pub enum LanguageType {
 }
 
 /// Information about a supported language
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LanguageInfo {
     /// Language code (EN, DE, etc.)
     pub language: String,

@@ -1,7 +1,7 @@
 //! # Manage glossaries
 //! 
 use reqwest::header;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fmt, collections::HashMap};
 
 use super::*;
@@ -33,7 +33,7 @@ pub enum GlossaryEntriesFormat {
 }
 
 /// Information that uniquely identifies a glossary
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Glossary {
     /// A unique ID assigned to a glossary
     pub glossary_id: String,
