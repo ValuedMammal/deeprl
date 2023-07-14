@@ -1,8 +1,8 @@
 //! # Translate text
 //!
-use serde::Deserialize;
 use super::*;
 use crate::lang::Language;
+use serde::Deserialize;
 
 /// Sets whether the translation engine should first split the input into sentences
 #[derive(Copy, Clone)]
@@ -45,14 +45,14 @@ pub struct Translation {
     /// Detected source language
     pub detected_source_language: String,
     /// Translated text
-    pub text: String
+    pub text: String,
 }
 
 /// Translation result
 #[derive(Debug, Deserialize)]
 pub struct TranslateTextResult {
     /// List of translations
-    pub translations: Vec<Translation>
+    pub translations: Vec<Translation>,
 }
 
 impl AsRef<str> for SplitSentences {
@@ -79,7 +79,7 @@ impl AsRef<str> for Formality {
 
 impl std::str::FromStr for Formality {
     type Err = Error;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let fm = match s {
             "more" => Self::More,
@@ -88,7 +88,7 @@ impl std::str::FromStr for Formality {
             "prefer_less" => Self::PreferLess,
             _ => Self::Default,
         };
-        
+
         Ok(fm)
     }
 }
@@ -124,10 +124,10 @@ builder! {
 }
 
 impl TextOptions {
-   /// Creates a map of request params from an instance of `TextOptions`
-   fn into_form(self) -> Vec<(&'static str, String)> {
+    /// Creates a map of request params from an instance of `TextOptions`
+    fn into_form(self) -> Vec<(&'static str, String)> {
         let mut form = vec![];
-        
+
         form.push(("target_lang", self.target_lang.to_string()));
 
         if let Some(src) = self.source_lang {
@@ -166,16 +166,16 @@ impl TextOptions {
         }
 
         form
-   }
+    }
 }
 
 impl DeepL {
     /// POST /translate
-    /// 
+    ///
     /// Translate one or more text strings
     pub fn translate(&self, opt: TextOptions, text: Vec<String>) -> Result<TranslateTextResult> {
         if text.is_empty() || text[0].is_empty() {
-            return Err(Error::Client("empty text parameter".to_string()))
+            return Err(Error::Client("empty text parameter".to_string()));
         }
         let url = format!("{}/translate", self.url);
         let mut params = opt.into_form();
@@ -190,10 +190,9 @@ impl DeepL {
             .map_err(|_| Error::Deserialize)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
 }

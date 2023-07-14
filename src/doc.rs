@@ -1,14 +1,11 @@
 //! # Translate documents
-//! 
+//!
 use reqwest::blocking::multipart;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use super::*;
-use crate::{
-    lang::*,
-    text::*,
-};
+use crate::{lang::*, text::*};
 
 /// Document handle
 #[derive(Debug, Deserialize, Serialize)]
@@ -77,7 +74,8 @@ impl DocumentOptions {
     /// Creates a multipart request form from an instance of `DocumentOptions`
     fn into_multipart(self) -> Result<multipart::Form> {
         let mut form = multipart::Form::new()
-            .file("file", self.file_path).map_err(|_| Error::Client("failed to attach file".to_string()))?
+            .file("file", self.file_path)
+            .map_err(|_| Error::Client("failed to attach file".to_string()))?
             .text("target_lang", self.target_lang.to_string());
 
         if let Some(src) = self.source_lang {
@@ -99,7 +97,7 @@ impl DocumentOptions {
 
 impl DeepL {
     /// POST /document
-    /// 
+    ///
     /// Upload a document
     pub fn document_upload(&self, opt: DocumentOptions) -> Result<Document> {
         let url = format!("{}/document", self.url);
@@ -112,24 +110,21 @@ impl DeepL {
             .map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
 
     /// POST /document/{document_id}
-    /// 
+    ///
     /// Get document translation status
     pub fn document_status(&self, doc: &Document) -> Result<DocumentStatus> {
         let doc_id = doc.document_id.clone();
         let url = format!("{}/document/{}", self.url, doc_id);
 
         let key = doc.document_key.clone();
-        let params = vec![
-            ("document_key", key),
-        ];
+        let params = vec![("document_key", key)];
 
         let resp = self.client.post(url)
             .form(&params)
@@ -137,11 +132,10 @@ impl DeepL {
             .map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
 
     /// POST /document/{document_id}/result
@@ -151,9 +145,7 @@ impl DeepL {
         let doc_id = doc.document_id;
         let url = format!("{}/document/{}/result", self.url, doc_id);
 
-        let params = vec![
-            ("document_key", doc.document_key),
-        ];
+        let params = vec![("document_key", doc.document_key)];
 
         let mut resp = self.client.post(url)
             .form(&params)
@@ -161,7 +153,7 @@ impl DeepL {
             .map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
 
         // write out file
@@ -169,10 +161,8 @@ impl DeepL {
         resp.copy_to(&mut buf)
             .map_err(|_| Error::Client("could not copy response data".to_string()))?;
 
-        let path = out_file.unwrap_or(
-            PathBuf::from(doc_id)
-        );
-        
+        let path = out_file.unwrap_or(PathBuf::from(doc_id));
+
         std::fs::write(&path, buf)
             .map_err(|_| Error::Client("failed to write out file".to_string()))?;
 

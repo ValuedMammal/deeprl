@@ -1,8 +1,8 @@
 //! # Supported language variants
-//! 
+//!
+use super::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
-use super::*;
 
 /// DeepL language type
 #[derive(Copy, Clone, Debug)]
@@ -23,15 +23,15 @@ pub struct LanguageInfo {
     pub supports_formality: Option<bool>,
 }
 
-/// Language variants. 
-/// 
+/// Language variants.
+///
 /// # Errors
-/// 
+///
 /// Please note, while many `Language` variants are interchangeable as both source and target languages, there are some exceptions.
 /// The following may only be used as `Source` languages:
 /// - `EN`
 /// - `PT`
-/// 
+///
 /// The following may only be used as `Target` languages:
 /// - `ENUS`
 /// - `ENGB`
@@ -39,72 +39,72 @@ pub struct LanguageInfo {
 /// - `PTPT`
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Language {
-      /// Bulgarian
-      BG,
-      /// Czech
-      CS,
-      /// Danish
-      DA,
-      /// German
-      DE,
-      /// Greek
-      EL,
-      /// English (source language)
-      EN,
-      /// English British (target language)
-      ENGB,
-      /// English American (target language)
-      ENUS,
-      /// Spanish
-      ES,
-      /// Estonian
-      ET,
-      /// Finish
-      FI,
-      /// French
-      FR,
-      /// Hungarian
-      HU,
-      /// Indonesian
-      ID,
-      /// Italian
-      IT,
-      /// Japanese
-      JA,
-      /// Korean
-      KO,
-      /// Lithuanian
-      LT,
-      /// Latvian
-      LV,
-      /// Norwegian
-      NB,
-      /// Dutch
-      NL,
-      /// Polish
-      PL,
-      /// Portuguese (source language)
-      PT,
-      /// Portuguese Brazilian (target language)
-      PTBR,
-      /// Portuguese European (target language)
-      PTPT,
-      /// Romanian
-      RO,
-      /// Russian
-      RU,
-      /// Slovak
-      SK,
-      /// Slovenian
-      SL,
-      /// Swedish
-      SV,
-      /// Turkish
-      TR,
-      /// Ukranian
-      UK,
-      /// Chinese simplified
-      ZH,
+    /// Bulgarian
+    BG,
+    /// Czech
+    CS,
+    /// Danish
+    DA,
+    /// German
+    DE,
+    /// Greek
+    EL,
+    /// English (source language)
+    EN,
+    /// English British (target language)
+    ENGB,
+    /// English American (target language)
+    ENUS,
+    /// Spanish
+    ES,
+    /// Estonian
+    ET,
+    /// Finish
+    FI,
+    /// French
+    FR,
+    /// Hungarian
+    HU,
+    /// Indonesian
+    ID,
+    /// Italian
+    IT,
+    /// Japanese
+    JA,
+    /// Korean
+    KO,
+    /// Lithuanian
+    LT,
+    /// Latvian
+    LV,
+    /// Norwegian
+    NB,
+    /// Dutch
+    NL,
+    /// Polish
+    PL,
+    /// Portuguese (source language)
+    PT,
+    /// Portuguese Brazilian (target language)
+    PTBR,
+    /// Portuguese European (target language)
+    PTPT,
+    /// Romanian
+    RO,
+    /// Russian
+    RU,
+    /// Slovak
+    SK,
+    /// Slovenian
+    SL,
+    /// Swedish
+    SV,
+    /// Turkish
+    TR,
+    /// Ukranian
+    UK,
+    /// Chinese simplified
+    ZH,
 }
 
 impl FromStr for Language {
@@ -204,17 +204,17 @@ impl LanguageInfo {
     /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
     #[allow(unused)]
     fn new(language: String, name: String) -> Self {
-        Self { 
-            language, 
-            name, 
-            supports_formality: None, 
+        Self {
+            language,
+            name,
+            supports_formality: None,
         }
     }
 }
 
 impl DeepL {
     /// GET /languages
-    /// 
+    ///
     /// Get information on supported languages
     pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>> {
         let url = format!("{}/languages", self.url);
@@ -225,9 +225,7 @@ impl DeepL {
         };
 
         // get, query "type"
-        let q = vec![
-            ("type", kind)
-        ];
+        let q = vec![("type", kind)];
 
         let resp = self.client.get(url)
             .query(&q)
@@ -235,10 +233,9 @@ impl DeepL {
             .map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.json()
-            .map_err(|_| Error::Deserialize)            
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
 }

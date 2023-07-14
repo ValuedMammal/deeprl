@@ -1,8 +1,8 @@
 //! # Manage glossaries
-//! 
+//!
 use reqwest::header;
 use serde::{Deserialize, Serialize};
-use std::{fmt, collections::HashMap};
+use std::{collections::HashMap, fmt};
 
 use super::*;
 use crate::lang::Language;
@@ -75,35 +75,31 @@ impl fmt::Display for GlossaryEntriesFormat {
 
 impl DeepL {
     /// GET /glossary-language-pairs
-    /// 
+    ///
     /// Get supported glossary language pairs
     pub fn glossary_languages(&self) -> Result<GlossaryLanguagePairsResult> {
         let url = format!("{}/glossary-language-pairs", self.url);
 
-        let resp = self.client.get(url)
-            .send()
-            .map_err(|_| Error::Request)?;
-        
+        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
 
     /// POST /glossaries
-    /// 
+    ///
     /// Create a new glossary
     pub fn glossary_new(
-        &self, 
-        name: String, 
-        source_lang: Language, 
-        target_lang: Language, 
-        entries: String, 
-        fmt: GlossaryEntriesFormat
-    ) -> Result<Glossary>
-    {
+        &self,
+        name: String,
+        source_lang: Language,
+        target_lang: Language,
+        entries: String,
+        fmt: GlossaryEntriesFormat,
+    ) -> Result<Glossary> {
         let url = format!("{}/glossaries", self.url);
 
         let params = HashMap::from([
@@ -120,78 +116,68 @@ impl DeepL {
             .map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-            
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
 
     /// GET /glossaries
-    /// 
+    ///
     /// List current active glossaries
     pub fn glossaries(&self) -> Result<GlossariesResult> {
         let url = format!("{}/glossaries", self.url);
 
-        let resp = self.client.get(url)
-            .send()
-            .map_err(|_| Error::Request)?;
+        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+
+        resp.json().map_err(|_| Error::Deserialize)
     }
-    
+
     /// GET /glossaries/`{glossary_id}`
-    /// 
+    ///
     /// Get meta information for a specified glossary (excluding entries)
     pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let resp = self.client.get(url)
-            .send()
-            .map_err(|_| Error::Request)?;
+        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
 
-        resp.json()
-            .map_err(|_| Error::Deserialize)
+        resp.json().map_err(|_| Error::Deserialize)
     }
-    
+
     /// GET /glossaries/`{glossary_id}`/entries
-    /// 
+    ///
     /// Retrieve entries for a specified glossary. Currently supports receiving entries in TSV format.
     pub fn glossary_entries(&self, glossary_id: &str) -> Result<String> {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
-        
+
         let resp = self.client.get(url)
             .header(header::ACCEPT, accept)
             .send()
             .map_err(|_| Error::Request)?;
-    
+
         if !resp.status().is_success() {
-            return super::convert(resp)
+            return super::convert(resp);
         }
-        
-        resp.text()
-            .map_err(|_| Error::InvalidResponse)
+
+        resp.text().map_err(|_| Error::InvalidResponse)
     }
-    
+
     /// DELETE /glossaries/`{glossary_id}`
-    /// 
+    ///
     /// Destroy a glossary
     pub fn glossary_del(&self, glossary_id: &str) -> Result<()> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let _ = self.client.delete(url)
-            .send()
-            .map_err(|_| Error::Request);
+        let _ = self.client.delete(url).send().map_err(|_| Error::Request);
 
         Ok(())
     }

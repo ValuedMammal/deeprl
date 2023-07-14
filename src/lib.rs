@@ -1,8 +1,8 @@
 //! # deeprl
-//! 
+//!
 //! Access the DeepL translation engine through a quick and reliable interface. We aim to provide the full suite of tools DeepL offers.
 //! See the [official docs](https://www.deepl.com/en/docs-api) for detailed resources.
-//! 
+//!
 //! # Note
 //! This crate uses a blocking http client, and as such is only suitable for use in synchronous (blocking) applications.
 //! If you intend to use the library functions in an async app, there is a [crate](https://docs.rs/deepl/latest/deepl/) for that.
@@ -11,67 +11,60 @@
 //! Create a new client with a valid API token to access the associated methods. For instance, you may wish to translate a simple text string to some target language.
 //! ```
 //! use deeprl::{DeepL, Language, TextOptions};
-//! 
+//!
 //! let key = std::env::var("DEEPL_API_KEY").unwrap();
 //! let dl = DeepL::new(key);
-//! 
+//!
 //! // Translate 'good morning' to German
 //! let opt = TextOptions::new(Language::DE);
-//! 
+//!
 //! let text = vec![
 //!     "good morning".to_string(),
 //! ];
-//! 
+//!
 //! let result = dl.translate(opt, text).unwrap();
 //! assert!(!result.translations.is_empty());
 //!
 //! let translation = &result.translations[0];
 //! assert_eq!(translation.text, "Guten Morgen");
 //! ```
-//! 
+//!
 //! As a helpful sanity check, make sure you're able to return account usage statistics.
 //! ```
 //! use deeprl::DeepL;
-//! 
+//!
 //! let dl = DeepL::new(
 //!     std::env::var("DEEPL_API_KEY").unwrap()
 //! );
-//! 
+//!
 //! let usage = dl.usage().unwrap();
 //! assert!(usage.character_limit > 0);
-//! 
+//!
 //! let count = usage.character_count;
 //! let limit = usage.character_limit;
 //! println!("Used: {count}/{limit}");
 //! // Used: 42/500000
 //! ```
-//! 
+//!
 //! `DeepL` also allows translating documents and creating custom glossaries.
 //!
 //! # License
 //! This project is licenced under MIT license.
-use reqwest::{
-    header,
-    StatusCode,
-};
+use reqwest::{header, StatusCode};
 use serde::Deserialize;
 use thiserror::Error;
 
-pub mod lang;
-pub mod text;
 pub mod doc;
 pub mod glos;
-pub use self::lang::Language;
-pub use self::text::TextOptions;
+pub mod lang;
+pub mod text;
 pub use self::doc::{Document, DocumentOptions};
 pub use self::glos::Glossary;
+pub use self::lang::Language;
+pub use self::text::TextOptions;
 
 // Sets the user agent request header value, e.g. 'deeprl/0.1.0'
-static APP_USER_AGENT: &str = concat!(
-    env!("CARGO_PKG_NAME"),
-    "/",
-    env!("CARGO_PKG_VERSION"),
-);
+static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 /// The `DeepL` client struct
 pub struct DeepL {
@@ -173,34 +166,31 @@ impl DeepL {
 
         let auth = format!("DeepL-Auth-Key {}", &key);
 
-        let mut auth_val = header::HeaderValue::from_str(&auth)
-            .expect("failed to create header value");
+        let mut auth_val =
+            header::HeaderValue::from_str(&auth).expect("failed to create header value");
         auth_val.set_sensitive(true);
 
         let mut headers = header::HeaderMap::new();
         headers.insert(header::AUTHORIZATION, auth_val);
-        
+
         let client = reqwest::blocking::Client::builder()
             .user_agent(APP_USER_AGENT)
             .default_headers(headers)
             .build()
             .expect("failed to build request client");
-        
+
         DeepL { client, url }
     }
 
     /// GET /usage
-    /// 
+    ///
     /// Get account usage
     pub fn usage(&self) -> Result<Usage> {
         let url = format!("{}/usage", self.url);
 
-        let resp = self.client.get(url)
-            .send()
-            .map_err(|_| Error::Request)?;
+        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
 
-        let usage: Usage = resp.json()
-            .map_err(|_| Error::Deserialize)?;
+        let usage: Usage = resp.json().map_err(|_| Error::Deserialize)?;
 
         Ok(usage)
     }
@@ -210,14 +200,12 @@ impl DeepL {
 fn convert<T>(resp: reqwest::blocking::Response) -> Result<T> {
     let code = resp.status();
     if code.is_client_error() {
-        return Err(Error::Client(code.to_string()))
+        return Err(Error::Client(code.to_string()));
     }
-    let resp: ServerError = resp.json()
-        .map_err(|_| Error::InvalidResponse)?;
+    let resp: ServerError = resp.json().map_err(|_| Error::InvalidResponse)?;
 
     Err(Error::Server(code, resp.message))
 }
 
 #[cfg(test)]
-
 mod test;
