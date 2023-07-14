@@ -13,7 +13,7 @@
 //! use deeprl::{DeepL, Language, TextOptions};
 //!
 //! let key = std::env::var("DEEPL_API_KEY").unwrap();
-//! let dl = DeepL::new(key);
+//! let dl = DeepL::new(&key);
 //!
 //! // Translate 'good morning' to German
 //! let opt = TextOptions::new(Language::DE);
@@ -34,7 +34,7 @@
 //! use deeprl::DeepL;
 //!
 //! let dl = DeepL::new(
-//!     std::env::var("DEEPL_API_KEY").unwrap()
+//!     &std::env::var("DEEPL_API_KEY").unwrap()
 //! );
 //!
 //! let usage = dl.usage().unwrap();
