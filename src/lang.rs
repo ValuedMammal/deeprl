@@ -5,7 +5,7 @@ use std::{fmt, str::FromStr};
 use super::*;
 
 /// DeepL language type
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum LanguageType {
     Source,
     Target,

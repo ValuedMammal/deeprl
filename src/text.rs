@@ -125,7 +125,7 @@ builder! {
 
 impl TextOptions {
    /// Creates a map of request params from an instance of `TextOptions`
-   fn to_form(self) -> Vec<(&'static str, String)> {
+   fn into_form(self) -> Vec<(&'static str, String)> {
         let mut form = vec![];
         
         form.push(("target_lang", self.target_lang.to_string()));
@@ -178,7 +178,7 @@ impl DeepL {
             return Err(Error::Client("empty text parameter".to_string()))
         }
         let url = format!("{}/translate", self.url);
-        let mut params = opt.to_form();
+        let mut params = opt.into_form();
 
         for t in text {
             params.push(("text", t));

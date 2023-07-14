@@ -24,7 +24,7 @@ pub struct GlossaryLanguagePairsResult {
 }
 
 /// Format in which glossary entries are provided
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum GlossaryEntriesFormat {
     /// Tab-separated values
     Tsv,
@@ -145,7 +145,7 @@ impl DeepL {
             .map_err(|_| Error::Deserialize)
     }
     
-    /// GET /glossaries/{glossary_id}
+    /// GET /glossaries/`{glossary_id}`
     /// 
     /// Get meta information for a specified glossary (excluding entries)
     pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary> {
@@ -163,7 +163,7 @@ impl DeepL {
             .map_err(|_| Error::Deserialize)
     }
     
-    /// GET /glossaries/{glossary_id}/entries
+    /// GET /glossaries/`{glossary_id}`/entries
     /// 
     /// Retrieve entries for a specified glossary. Currently supports receiving entries in TSV format.
     pub fn glossary_entries(&self, glossary_id: &str) -> Result<String> {
@@ -183,7 +183,7 @@ impl DeepL {
             .map_err(|_| Error::InvalidResponse)
     }
     
-    /// DELETE /glossaries/{glossary_id}
+    /// DELETE /glossaries/`{glossary_id}`
     /// 
     /// Destroy a glossary
     pub fn glossary_del(&self, glossary_id: &str) -> Result<()> {

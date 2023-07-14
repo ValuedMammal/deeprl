@@ -37,7 +37,7 @@ pub struct DocumentStatus {
 }
 
 /// Document state
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DocState {
     /// The translation job is waiting in line to be processed
@@ -69,16 +69,13 @@ builder! {
 impl DocState {
     /// Whether the document is done translating and ready to be downloaded
     pub fn is_done(&self) -> bool {
-        match self {
-            Self::Done => true,
-            _ => false,
-        }
+        matches!(self, Self::Done)
     }
 }
 
 impl DocumentOptions {
     /// Creates a multipart request form from an instance of `DocumentOptions`
-    fn to_multipart(self) -> Result<multipart::Form> {
+    fn into_multipart(self) -> Result<multipart::Form> {
         let mut form = multipart::Form::new()
             .file("file", self.file_path).map_err(|_| Error::Client("failed to attach file".to_string()))?
             .text("target_lang", self.target_lang.to_string());
@@ -90,7 +87,7 @@ impl DocumentOptions {
             form = form.text("filename", name);
         }
         if let Some(fm) = self.formality {
-            form = form.text("formality", fm.as_ref().to_string())
+            form = form.text("formality", fm.as_ref().to_string());
         }
         if let Some(glos) = self.glossary_id {
             form = form.text("glossary_id", glos);
@@ -107,7 +104,7 @@ impl DeepL {
     pub fn document_upload(&self, opt: DocumentOptions) -> Result<Document> {
         let url = format!("{}/document", self.url);
 
-        let form = opt.to_multipart()?;
+        let form = opt.into_multipart()?;
 
         let resp = self.client.post(url)
             .multipart(form)

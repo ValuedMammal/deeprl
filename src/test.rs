@@ -17,7 +17,7 @@ use crate::{
 #[test]
 fn usage() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let resp = dl.usage();
@@ -30,7 +30,7 @@ fn usage() {
 #[test]
 fn languages() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let source_langs = dl.languages(LanguageType::Source).unwrap();
@@ -57,7 +57,7 @@ fn languages() {
 #[test]
 fn translate_text() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let src = Language::EN;
@@ -76,7 +76,7 @@ fn translate_text() {
 #[test]
 fn translate_options() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let opt = TextOptions::new(Language::FR)
@@ -102,7 +102,7 @@ fn translate_options() {
 #[test]
 fn translate_tags() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let xml = r"
@@ -138,7 +138,7 @@ fn translate_tags() {
 #[test]
 fn document() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
     
     // create file
@@ -178,7 +178,7 @@ fn document() {
 fn glossary_pairs() {
     // get supported glossary language pairs
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let result = dl.glossary_languages().unwrap();
@@ -192,7 +192,7 @@ fn glossary_pairs() {
 fn glossaries() {
     // list available glossaries
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
 
     let result = dl.glossaries().unwrap();
@@ -206,7 +206,7 @@ fn glossaries() {
 #[test]
 fn glossary_all() {
     let dl = DeepL::new(
-        env::var("DEEPL_API_KEY").unwrap()
+        &env::var("DEEPL_API_KEY").unwrap()
     );
      
     // test create

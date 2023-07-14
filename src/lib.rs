@@ -137,6 +137,7 @@ macro_rules! builder {
             }
 
             impl [<$name Options>] {
+                #[must_use]
                 pub fn new($($must_field: $must_type,)+) -> Self {
                     Self {
                         $($must_field,)+
@@ -144,6 +145,7 @@ macro_rules! builder {
                     }
                 }
                 $(
+                    #[must_use]
                     #[doc = "Setter for `" $opt_field "`"]
                     pub fn $opt_field(mut self, $opt_field: $opt_type) -> Self {
                         self.$opt_field = Some($opt_field);
@@ -161,7 +163,7 @@ impl DeepL {
     /// # Panics
     /// - If `key` contains invalid characters causing a failure to create a `reqwest::header::HeaderValue`
     /// - If unable to build a `reqwest::blocking::Client` such as when called from an async runtime
-    pub fn new(key: String) -> Self {
+    pub fn new(key: &str) -> Self {
         let base = if key.ends_with(":fx") {
             "https://api-free.deepl.com/v2"
         } else {
