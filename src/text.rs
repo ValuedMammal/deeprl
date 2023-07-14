@@ -187,7 +187,7 @@ impl DeepL {
         let resp = self.client.post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::Deserialize)?;
+            .map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
