@@ -154,10 +154,6 @@ macro_rules! builder {
 
 impl DeepL {
     /// Create a new instance of `DeepL` from an API key.
-    ///
-    /// # Panics
-    /// - If `key` contains invalid characters causing a failure to create a `reqwest::header::HeaderValue`
-    /// - If unable to build a `reqwest::blocking::Client` such as when called from an async runtime
     pub fn new(key: &str) -> Self {
         let base = if key.ends_with(":fx") {
             "https://api-free.deepl.com/v2"
@@ -179,7 +175,7 @@ impl DeepL {
         self
     }
     
-    /// Sets app name and version to be used in the User-Agent header field, e.g. "my-app/1.2.3"
+    /// Sets app name and version to be used in the User-Agent header, e.g. "my-app/1.2.3"
     pub fn app_info(&mut self, app: String) -> &mut Self {
         self.user_agent = Some(app);
         self
