@@ -6,21 +6,24 @@ use crate::{doc::*, glos::*, lang::*, text::*};
 #[test]
 fn configure() {
     // test set user client + app agent
-    let app = String::from("my-app/1.2.3");
-    let client = reqwest::blocking::ClientBuilder::new()
+    let app = "my-app/1.2.3";
+    let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(21))
         .build()
         .unwrap();
 
-    let mut dl = DeepL::new(
-        &env::var("DEEPL_API_KEY").unwrap()
-    );
-    
+    let key = env::var("DEEPL_API_KEY").unwrap();
+    let mut dl = DeepL::new(&key);
     dl.client(client);
-    dl.app_info(app);
+    dl.app_info(app.to_owned());
 
-    let resp = dl.usage();
-    assert!(resp.is_ok())
+    let url = format!("{}/usage", dl.url);
+    let req = dl.get(url).build().unwrap();
+    let headers = req.headers();
+
+    assert_eq!(headers.get("User-Agent").unwrap(), header::HeaderValue::from_static(app));
+    let auth = format!("DeepL-Auth-Key {}", key);
+    assert_eq!(headers.get("Authorization").unwrap(), header::HeaderValue::from_str(&auth).unwrap());
 }
 
 #[test]
