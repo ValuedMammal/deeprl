@@ -169,18 +169,18 @@ impl DeepL {
         }
 
         let t = resp.text().map_err(|_| Error::InvalidResponse).unwrap();
-        
+
         // split /n
         let mut map = HashMap::new();
         let raw_entries: Vec<&str> = t.split('\n').collect();
-        
+
         // split /t
         for entry in raw_entries {
             let elems: Vec<&str> = entry.split('\t').collect();
             if elems.len() != 2 { continue }
             map.insert(elems[0].to_owned(), elems[1].to_owned());
         }
-        
+
         Ok(map)
     }
 

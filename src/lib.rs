@@ -161,8 +161,8 @@ impl DeepL {
             "https://api.deepl.com/v2"
         };
 
-        DeepL { 
-            client: reqwest::blocking::Client::new(), 
+        DeepL {
+            client: reqwest::blocking::Client::new(),
             url: reqwest::Url::parse(base).unwrap(),
             user_agent: None,
             auth: format!("DeepL-Auth-Key {}", &key),
@@ -174,31 +174,31 @@ impl DeepL {
         self.client = client;
         self
     }
-    
+
     /// Sets app name and version to be used in the User-Agent header, e.g. "my-app/1.2.3"
     pub fn app_info(&mut self, app: String) -> &mut Self {
         self.user_agent = Some(app);
         self
     }
-    
+
     /// Calls the underlying client POST method
-    pub fn post<U>(&self, url: U) -> reqwest::blocking::RequestBuilder 
+    pub fn post<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
     where
         U: reqwest::IntoUrl,
     {
         self.client.post(url).headers(self.default_headers())
     }
-    
+
     /// Calls the underlying client GET method
-    pub fn get<U>(&self, url: U) -> reqwest::blocking::RequestBuilder 
+    pub fn get<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
     where
         U: reqwest::IntoUrl,
     {
         self.client.get(url).headers(self.default_headers())
     }
-    
+
     /// Calls the underlying client DELETE method
-    pub fn delete<U>(&self, url: U) -> reqwest::blocking::RequestBuilder 
+    pub fn delete<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
     where
         U: reqwest::IntoUrl,
     {
@@ -215,7 +215,7 @@ impl DeepL {
         };
         let mut map = reqwest::header::HeaderMap::new();
         map.insert(header::USER_AGENT, header::HeaderValue::from_str(&app).unwrap());
-        
+
         // auth
         map.insert(header::AUTHORIZATION, header::HeaderValue::from_str(&self.auth).unwrap());
         map
