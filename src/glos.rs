@@ -80,7 +80,7 @@ impl DeepL {
     pub fn glossary_languages(&self) -> Result<GlossaryLanguagePairsResult> {
         let url = format!("{}/glossary-language-pairs", self.url);
 
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -110,7 +110,7 @@ impl DeepL {
             ("entries_format", fmt.to_string()),
         ]);
 
-        let resp = self.client.post(url)
+        let resp = self.post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::Request)?;
@@ -128,7 +128,7 @@ impl DeepL {
     pub fn glossaries(&self) -> Result<GlossariesResult> {
         let url = format!("{}/glossaries", self.url);
 
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -143,7 +143,7 @@ impl DeepL {
     pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -159,7 +159,7 @@ impl DeepL {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
 
-        let resp = self.client.get(url)
+        let resp = self.get(url)
             .header(header::ACCEPT, accept)
             .send()
             .map_err(|_| Error::Request)?;
@@ -177,7 +177,7 @@ impl DeepL {
     pub fn glossary_del(&self, glossary_id: &str) -> Result<()> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let _ = self.client.delete(url).send().map_err(|_| Error::Request);
+        let _ = self.delete(url).send().map_err(|_| Error::Request);
 
         Ok(())
     }

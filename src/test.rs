@@ -4,9 +4,29 @@ use super::*;
 use crate::{doc::*, glos::*, lang::*, text::*};
 
 #[test]
+fn configure() {
+    // test set user client + app agent
+    let app = String::from("my-app/1.2.3");
+    let client = reqwest::blocking::ClientBuilder::new()
+        .timeout(Duration::from_secs(21))
+        .build()
+        .unwrap();
+
+    let mut dl = DeepL::new(
+        &env::var("DEEPL_API_KEY").unwrap()
+    );
+    
+    dl.client(client);
+    dl.app_info(app);
+
+    let resp = dl.usage();
+    assert!(resp.is_ok())
+}
+
+#[test]
 fn usage() {
     let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
-
+    
     let resp = dl.usage();
     assert!(resp.is_ok());
 

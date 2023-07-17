@@ -184,7 +184,7 @@ impl DeepL {
             params.push(("text", t));
         }
 
-        let resp = self.client.post(url)
+        let resp = self.post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::Request)?;
