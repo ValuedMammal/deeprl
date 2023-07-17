@@ -155,7 +155,7 @@ impl DeepL {
     /// GET /glossaries/`{glossary_id}`/entries
     ///
     /// Retrieve entries for a specified glossary. Currently supports receiving entries in TSV format.
-    pub fn glossary_entries(&self, glossary_id: &str) -> Result<String> {
+    pub fn glossary_entries(&self, glossary_id: &str) -> Result<HashMap<String, String>> {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
 
@@ -168,7 +168,20 @@ impl DeepL {
             return super::convert(resp);
         }
 
-        resp.text().map_err(|_| Error::InvalidResponse)
+        let t = resp.text().map_err(|_| Error::InvalidResponse).unwrap();
+        
+        // split /n
+        let mut map = HashMap::new();
+        let raw_entries: Vec<&str> = t.split('\n').collect();
+        
+        // split /t
+        for entry in raw_entries {
+            let elems: Vec<&str> = entry.split('\t').collect();
+            if elems.len() != 2 { continue }
+            map.insert(elems[0].to_owned(), elems[1].to_owned());
+        }
+        
+        Ok(map)
     }
 
     /// DELETE /glossaries/`{glossary_id}`

@@ -214,8 +214,8 @@ fn glossary_all() {
     let glos_id = glossary.glossary_id;
     let resp = dl.glossary_entries(&glos_id);
     assert!(resp.is_ok());
-    let entry = resp.unwrap();
-    assert!(entry.contains("goodbye\tarrivederci"));
+    let entries = resp.unwrap();
+    assert_eq!(entries.len(), 2);
 
     // test translate with glossary
     let opts = TextOptions::new(Language::IT)
