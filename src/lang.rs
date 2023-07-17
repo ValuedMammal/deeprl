@@ -227,7 +227,7 @@ impl DeepL {
         // get, query "type"
         let q = vec![("type", kind)];
 
-        let resp = self.client.get(url)
+        let resp = self.get(url)
             .query(&q)
             .send()
             .map_err(|_| Error::Request)?;

@@ -4,6 +4,29 @@ use super::*;
 use crate::{doc::*, glos::*, lang::*, text::*};
 
 #[test]
+fn configure() {
+    // test set user client + app agent
+    let app = "my-app/1.2.3";
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(21))
+        .build()
+        .unwrap();
+
+    let key = env::var("DEEPL_API_KEY").unwrap();
+    let mut dl = DeepL::new(&key);
+    dl.client(client);
+    dl.app_info(app.to_owned());
+
+    let url = format!("{}/usage", dl.url);
+    let req = dl.get(url).build().unwrap();
+    let headers = req.headers();
+
+    assert_eq!(headers.get("User-Agent").unwrap(), header::HeaderValue::from_static(app));
+    let auth = format!("DeepL-Auth-Key {}", key);
+    assert_eq!(headers.get("Authorization").unwrap(), header::HeaderValue::from_str(&auth).unwrap());
+}
+
+#[test]
 fn usage() {
     let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
 
@@ -191,8 +214,8 @@ fn glossary_all() {
     let glos_id = glossary.glossary_id;
     let resp = dl.glossary_entries(&glos_id);
     assert!(resp.is_ok());
-    let entry = resp.unwrap();
-    assert!(entry.contains("goodbye\tarrivederci"));
+    let entries = resp.unwrap();
+    assert_eq!(entries.len(), 2);
 
     // test translate with glossary
     let opts = TextOptions::new(Language::IT)

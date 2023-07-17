@@ -80,7 +80,7 @@ impl DeepL {
     pub fn glossary_languages(&self) -> Result<GlossaryLanguagePairsResult> {
         let url = format!("{}/glossary-language-pairs", self.url);
 
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -110,7 +110,7 @@ impl DeepL {
             ("entries_format", fmt.to_string()),
         ]);
 
-        let resp = self.client.post(url)
+        let resp = self.post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::Request)?;
@@ -128,7 +128,7 @@ impl DeepL {
     pub fn glossaries(&self) -> Result<GlossariesResult> {
         let url = format!("{}/glossaries", self.url);
 
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -143,7 +143,7 @@ impl DeepL {
     pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -155,11 +155,11 @@ impl DeepL {
     /// GET /glossaries/`{glossary_id}`/entries
     ///
     /// Retrieve entries for a specified glossary. Currently supports receiving entries in TSV format.
-    pub fn glossary_entries(&self, glossary_id: &str) -> Result<String> {
+    pub fn glossary_entries(&self, glossary_id: &str) -> Result<HashMap<String, String>> {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
 
-        let resp = self.client.get(url)
+        let resp = self.get(url)
             .header(header::ACCEPT, accept)
             .send()
             .map_err(|_| Error::Request)?;
@@ -168,7 +168,20 @@ impl DeepL {
             return super::convert(resp);
         }
 
-        resp.text().map_err(|_| Error::InvalidResponse)
+        let t = resp.text().map_err(|_| Error::InvalidResponse).unwrap();
+
+        // split /n
+        let mut map = HashMap::new();
+        let raw_entries: Vec<&str> = t.split('\n').collect();
+
+        // split /t
+        for entry in raw_entries {
+            let elems: Vec<&str> = entry.split('\t').collect();
+            if elems.len() != 2 { continue }
+            map.insert(elems[0].to_owned(), elems[1].to_owned());
+        }
+
+        Ok(map)
     }
 
     /// DELETE /glossaries/`{glossary_id}`
@@ -177,7 +190,7 @@ impl DeepL {
     pub fn glossary_del(&self, glossary_id: &str) -> Result<()> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let _ = self.client.delete(url).send().map_err(|_| Error::Request);
+        let _ = self.delete(url).send().map_err(|_| Error::Request);
 
         Ok(())
     }

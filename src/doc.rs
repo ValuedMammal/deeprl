@@ -104,7 +104,7 @@ impl DeepL {
 
         let form = opt.into_multipart()?;
 
-        let resp = self.client.post(url)
+        let resp = self.post(url)
             .multipart(form)
             .send()
             .map_err(|_| Error::Request)?;
@@ -126,7 +126,7 @@ impl DeepL {
         let key = doc.document_key.clone();
         let params = vec![("document_key", key)];
 
-        let resp = self.client.post(url)
+        let resp = self.post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::Request)?;
@@ -147,7 +147,7 @@ impl DeepL {
 
         let params = vec![("document_key", doc.document_key)];
 
-        let mut resp = self.client.post(url)
+        let mut resp = self.post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::Request)?;

@@ -70,6 +70,8 @@ static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_P
 pub struct DeepL {
     client: reqwest::blocking::Client,
     url: reqwest::Url,
+    user_agent: Option<String>,
+    auth: String,
 }
 
 /// Crate Result type
@@ -152,34 +154,71 @@ macro_rules! builder {
 
 impl DeepL {
     /// Create a new instance of `DeepL` from an API key.
-    ///
-    /// # Panics
-    /// - If `key` contains invalid characters causing a failure to create a `reqwest::header::HeaderValue`
-    /// - If unable to build a `reqwest::blocking::Client` such as when called from an async runtime
     pub fn new(key: &str) -> Self {
         let base = if key.ends_with(":fx") {
             "https://api-free.deepl.com/v2"
         } else {
             "https://api.deepl.com/v2"
         };
-        let url = reqwest::Url::parse(base).unwrap();
 
-        let auth = format!("DeepL-Auth-Key {}", &key);
+        DeepL {
+            client: reqwest::blocking::Client::new(),
+            url: reqwest::Url::parse(base).unwrap(),
+            user_agent: None,
+            auth: format!("DeepL-Auth-Key {}", &key),
+        }
+    }
 
-        let mut auth_val =
-            header::HeaderValue::from_str(&auth).expect("failed to create header value");
-        auth_val.set_sensitive(true);
+    /// Sets a user-defined HTTP client
+    pub fn client(&mut self, client: reqwest::blocking::Client) -> &mut Self {
+        self.client = client;
+        self
+    }
 
-        let mut headers = header::HeaderMap::new();
-        headers.insert(header::AUTHORIZATION, auth_val);
+    /// Sets app name and version to be used in the User-Agent header, e.g. "my-app/1.2.3"
+    pub fn app_info(&mut self, app: String) -> &mut Self {
+        self.user_agent = Some(app);
+        self
+    }
 
-        let client = reqwest::blocking::Client::builder()
-            .user_agent(APP_USER_AGENT)
-            .default_headers(headers)
-            .build()
-            .expect("failed to build request client");
+    /// Calls the underlying client POST method
+    pub fn post<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
+    where
+        U: reqwest::IntoUrl,
+    {
+        self.client.post(url).headers(self.default_headers())
+    }
 
-        DeepL { client, url }
+    /// Calls the underlying client GET method
+    pub fn get<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
+    where
+        U: reqwest::IntoUrl,
+    {
+        self.client.get(url).headers(self.default_headers())
+    }
+
+    /// Calls the underlying client DELETE method
+    pub fn delete<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
+    where
+        U: reqwest::IntoUrl,
+    {
+        self.client.delete(url).headers(self.default_headers())
+    }
+
+    /// Construct default headers used in the request (User-Agent, Authorization)
+    fn default_headers(&self) -> header::HeaderMap {
+        // user agent
+        let app = if let Some(s) = &self.user_agent {
+            s.clone()
+        } else {
+            APP_USER_AGENT.to_string()
+        };
+        let mut map = reqwest::header::HeaderMap::new();
+        map.insert(header::USER_AGENT, header::HeaderValue::from_str(&app).unwrap());
+
+        // auth
+        map.insert(header::AUTHORIZATION, header::HeaderValue::from_str(&self.auth).unwrap());
+        map
     }
 
     /// GET /usage
@@ -187,9 +226,7 @@ impl DeepL {
     /// Get account usage
     pub fn usage(&self) -> Result<Usage> {
         let url = format!("{}/usage", self.url);
-
-        let resp = self.client.get(url).send().map_err(|_| Error::Request)?;
-
+        let resp = self.get(url).send().map_err(|_| Error::Request)?;
         let usage: Usage = resp.json().map_err(|_| Error::Deserialize)?;
 
         Ok(usage)
