@@ -15,7 +15,7 @@ fn configure() {
     let key = env::var("DEEPL_API_KEY").unwrap();
     let mut dl = DeepL::new(&key);
     dl.client(client);
-    dl.app_info(app.to_owned());
+    dl.set_app_info(app.to_owned());
 
     let url = format!("{}/usage", dl.url);
     let req = dl.get(url).build().unwrap();

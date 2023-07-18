@@ -86,7 +86,7 @@ pub enum Error {
     Server(StatusCode, String),
     #[error("error deserializing response")]
     Deserialize,
-    #[error("error sending request")]
+    #[error("invalid request")]
     Request,
     #[error("invalid language")]
     InvalidLanguage,
@@ -176,13 +176,13 @@ impl DeepL {
     }
 
     /// Sets app name and version to be used in the User-Agent header, e.g. "my-app/1.2.3"
-    pub fn app_info(&mut self, app: String) -> &mut Self {
+    pub fn set_app_info(&mut self, app: String) -> &mut Self {
         self.user_agent = Some(app);
         self
     }
 
     /// Calls the underlying client POST method
-    pub fn post<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
+    fn post<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
     where
         U: reqwest::IntoUrl,
     {
@@ -190,7 +190,7 @@ impl DeepL {
     }
 
     /// Calls the underlying client GET method
-    pub fn get<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
+    fn get<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
     where
         U: reqwest::IntoUrl,
     {
@@ -198,7 +198,7 @@ impl DeepL {
     }
 
     /// Calls the underlying client DELETE method
-    pub fn delete<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
+    fn delete<U>(&self, url: U) -> reqwest::blocking::RequestBuilder
     where
         U: reqwest::IntoUrl,
     {
