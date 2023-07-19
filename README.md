@@ -299,7 +299,7 @@ for pair in lang_pairs {
 
 Now let's create a glossary with source language English and target language Italian. To do so, we'll create a file called *my_glossary.csv* to hold the glossary entries. The entries are formatted as a comma-separated list with two columns (source,target) with one entry per line. Thus, our csv file with two glossary entries looks like this:
 
-`my_glossary.csv`
+> `my_glossary.csv`
 ```
 hello,ciao
 goodbye,ciao
