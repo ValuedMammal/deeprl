@@ -8,7 +8,7 @@ use super::*;
 use crate::lang::Language;
 
 /// A glossary language pair
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GlossaryLanguagePair {
     /// Source language
     pub source_lang: String,
@@ -17,7 +17,7 @@ pub struct GlossaryLanguagePair {
 }
 
 /// Defines the set of supported language pairs for a glossary
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GlossaryLanguagePairsResult {
     /// List of supported glossary language pairs
     pub supported_languages: Vec<GlossaryLanguagePair>,
@@ -52,7 +52,7 @@ pub struct Glossary {
 }
 
 /// The result of getting available glossaries
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GlossariesResult {
     /// List of glossaries
     pub glossaries: Vec<Glossary>,
