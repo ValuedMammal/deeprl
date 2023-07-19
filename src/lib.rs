@@ -87,7 +87,7 @@ pub enum Error {
     #[error("error deserializing response")]
     Deserialize,
     #[error("invalid request")]
-    Request,
+    InvalidRequest,
     #[error("invalid language")]
     InvalidLanguage,
     #[error("invalid response")]
@@ -226,7 +226,7 @@ impl DeepL {
     /// Get account usage
     pub fn usage(&self) -> Result<Usage> {
         let url = format!("{}/usage", self.url);
-        let resp = self.get(url).send().map_err(|_| Error::Request)?;
+        let resp = self.get(url).send().map_err(|_| Error::InvalidRequest)?;
         let usage: Usage = resp.json().map_err(|_| Error::Deserialize)?;
 
         Ok(usage)

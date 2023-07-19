@@ -63,10 +63,10 @@ builder! {
     } -> Self;
 }
 
-impl DocState {
+impl DocumentStatus {
     /// Whether the document is done translating and ready to be downloaded
     pub fn is_done(&self) -> bool {
-        matches!(self, Self::Done)
+        matches!(self.status, DocState::Done)
     }
 }
 
@@ -107,7 +107,7 @@ impl DeepL {
         let resp = self.post(url)
             .multipart(form)
             .send()
-            .map_err(|_| Error::Request)?;
+            .map_err(|_| Error::InvalidRequest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -129,7 +129,7 @@ impl DeepL {
         let resp = self.post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::Request)?;
+            .map_err(|_| Error::InvalidRequest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -150,7 +150,7 @@ impl DeepL {
         let mut resp = self.post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::Request)?;
+            .map_err(|_| Error::InvalidRequest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);

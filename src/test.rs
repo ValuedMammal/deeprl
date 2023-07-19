@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf, str::FromStr, thread, time::Duration};
+use std::{env, path::PathBuf, str::FromStr, thread, time::Duration, io::Write};
 
 use super::*;
 use crate::{doc::*, glos::*, lang::*, text::*};
@@ -155,12 +155,12 @@ fn document() {
     thread::sleep(Duration::from_secs(3));
     let mut doc_status = dl.document_status(&doc).unwrap();
 
-    while !doc_status.status.is_done() {
+    while !doc_status.is_done() {
         // try again after 3 sec
         thread::sleep(Duration::from_secs(3));
         doc_status = dl.document_status(&doc).unwrap();
     }
-    assert!(doc_status.status.is_done());
+    assert!(doc_status.is_done());
 
     // test download
     let out_file = PathBuf::from("de.txt");
@@ -200,15 +200,27 @@ fn glossaries() {
 fn glossary_all() {
     let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
 
-    // test create
+    // create csv file with two glossary entries
+    let entry = "hello,ciao\n".to_string();
+    std::fs::write("glos.csv", entry).unwrap();
+    
+    let entry = "goodbye,ciao\n".to_string();
+    let _wrote = std::fs::OpenOptions::new()
+        .append(true)
+        .open("glos.csv")
+        .unwrap()
+        .write(entry.as_bytes())
+        .unwrap();
+
+    // test create glossary
     let name = "my_glossary".to_string();
     let src = Language::EN;
     let trg = Language::IT;
-    let entries = "goodbye,arrivederci".to_string();
+    let entries = std::fs::read_to_string("glos.csv").unwrap();
     let fmt = GlossaryEntriesFormat::Csv;
 
     let glossary = dl.glossary_new(name, src, trg, entries, fmt).unwrap();
-    assert_eq!(glossary.entry_count, 1);
+    assert_eq!(glossary.entry_count, 2);
 
     // test fetch entries
     let glos_id = glossary.glossary_id;
@@ -226,7 +238,7 @@ fn glossary_all() {
     let text = vec!["goodbye".to_string()];
     let result = dl.translate(opts, text).unwrap();
     let translations = result.translations;
-    assert_eq!(translations[0].text, "arrivederci");
+    assert_eq!(translations[0].text, "ciao");
 
     // test delete
     let _: () = dl.glossary_del(&glos_id).unwrap();

@@ -230,7 +230,7 @@ impl DeepL {
         let resp = self.get(url)
             .query(&q)
             .send()
-            .map_err(|_| Error::Request)?;
+            .map_err(|_| Error::InvalidRequest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
