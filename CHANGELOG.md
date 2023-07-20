@@ -1,14 +1,22 @@
 # Changelog
 
-All notable changes will be documented in this file. 
-This project adheres to semantic versioning.
+All notable changes will be documented in this file. This project adheres to semantic versioning.
 
 ## [Unreleased]
 
 ### In progress
 
+## [0.2.0] - 2023-07-20
+
+### Changed
+- The signature of `DeepL::new` has changed to expect a string slice `&str` as its only parameter instead of an owned String.
+- `glossary_entries` now returns `Result<HashMap<String, String>>` instead of `Result<String>`, providing a more intuitive container for glossary entries.
+- `Error::Request` has been renamed to `Error::InvalidRequest`.
+- `DocumentStatus` now implements the function `is_done`. Previously `is_done` was called on an instance of `DocState`. This is no longer the case.
+
+### Added
 - Adds two new methods, `client` and `set_app_info` on the `DeepL` type which allow setting a user-defined `blocking::Client` and app-info string respectively.
-- `glossary_entries` now returns `Result<HashMap<String, String>>` instead of `Result<String>`, thus providing a more intuitive container for glossary entries.
+- The following glossary types can be serialized: `GlossariesResult`, `GlossaryLanguagePairsResult`, and `GlossaryLanguagePair`
 
 ## [0.1.1] - 2023-07-13
 

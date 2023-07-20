@@ -1,10 +1,11 @@
 [package]
 name = "deeprl"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 description = "DeepL client library with all the things (blocking)"
 license = "MIT"
 documentation = "https://docs.rs/deeprl"
+readme = "README.md"
 repository = "https://github.com/ValuedMammal/deeprl"
 
 [dependencies]
