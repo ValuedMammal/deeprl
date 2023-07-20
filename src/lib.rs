@@ -120,7 +120,7 @@ macro_rules! builder {
             @optional{
                 $($opt_field:ident: $opt_type:ty,)+
             };
-        } -> $ret:ty;
+        }
     ) => {
         use paste::paste;
 
@@ -140,8 +140,8 @@ macro_rules! builder {
                     }
                 }
                 $(
-                    #[must_use]
                     #[doc = "Setter for `" $opt_field "`"]
+                    #[must_use]
                     pub fn $opt_field(mut self, $opt_field: $opt_type) -> Self {
                         self.$opt_field = Some($opt_field);
                         self

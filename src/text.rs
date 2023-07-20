@@ -120,7 +120,7 @@ builder! {
             splitting_tags: String,
             ignore_tags: String,
         };
-    } -> Self;
+    }
 }
 
 impl TextOptions {

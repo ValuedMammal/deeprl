@@ -60,7 +60,7 @@ builder! {
             formality: Formality,
             glossary_id: String,
         };
-    } -> Self;
+    }
 }
 
 impl DocumentStatus {
