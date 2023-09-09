@@ -1,13 +1,42 @@
 //! # Supported language variants
+//! 
+//! [`DeepL`] translates to and from a variety of languages which are broadly categorized as either a `Source` or `Target`.
+//! Information about a language is obtained from the `/languages` endpoint as shown below.
+//! 
+//! ## Example
+//! ```
+//! // Get a list of supported source languages
+//! use deeprl::{DeepL, LanguageType};
+//! 
+//! let dl = DeepL::new(
+//!     &std::env::var("DEEPL_API_KEY").unwrap()
+//! );
+//! 
+//! let source_langs = dl.languages(LanguageType::Source).unwrap();
+//! assert!(!source_langs.is_empty());
+//! ```
+//! 
+//! Please note that while many [`Language`] variants are interchangeable as both source and target languages, there are exceptions,
+//! for example when translating text and documents, the following may only be used as source languages:
+//! - `EN`
+//! - `PT`
 //!
+//! and the following may only be used as target languages (representing regional variants):
+//! - `ENUS`
+//! - `ENGB`
+//! - `PTBR`
+//! - `PTPT`
 use super::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
-/// DeepL language type
+/// DeepL language type. 
+/// Note: this is currently only used when fetching language meta info
 #[derive(Copy, Clone, Debug)]
 pub enum LanguageType {
+    /// Source language
     Source,
+    /// Target language
     Target,
 }
 
@@ -24,19 +53,6 @@ pub struct LanguageInfo {
 }
 
 /// Language variants.
-///
-/// # Errors
-///
-/// Please note, while many `Language` variants are interchangeable as both source and target languages, there are some exceptions.
-/// The following may only be used as `Source` languages:
-/// - `EN`
-/// - `PT`
-///
-/// The following may only be used as `Target` languages:
-/// - `ENUS`
-/// - `ENGB`
-/// - `PTBR`
-/// - `PTPT`
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Language {
     /// Bulgarian
@@ -110,6 +126,9 @@ pub enum Language {
 impl FromStr for Language {
     type Err = Error;
 
+    /// # Errors
+    /// 
+    /// If a [`Language`] cannot be parsed from the input `s`
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lang = match s.to_uppercase().as_str() {
             "BG" => Language::BG,

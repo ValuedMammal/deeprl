@@ -3,11 +3,11 @@
 //! Access the DeepL translation engine through a quick and reliable interface. We aim to provide the full suite of tools DeepL offers.
 //! See the [official docs](https://www.deepl.com/en/docs-api) for detailed resources.
 //!
-//! # Note
+//! ## Note
 //! This crate uses a blocking http client, and as such is only suitable for use in synchronous (blocking) applications.
 //! If you intend to use the library functions in an async app, there is a [crate](https://docs.rs/deepl/latest/deepl/) for that.
 //!  
-//! # Examples
+//! ## Examples
 //! Create a new client with a valid API token to access the associated methods. For instance, you may wish to translate a simple text string to some target language.
 //! ```
 //! use deeprl::{DeepL, Language, TextOptions};
@@ -58,10 +58,10 @@ pub mod doc;
 pub mod glos;
 pub mod lang;
 pub mod text;
-pub use self::doc::{Document, DocumentOptions};
-pub use self::glos::Glossary;
-pub use self::lang::Language;
-pub use self::text::TextOptions;
+pub use doc::{Document, DocumentOptions, DocumentStatus, DocState};
+pub use glos::{Glossary, GlossaryLanguagePairsResult, GlossaryLanguagePair, GlossaryEntriesFormat, GlossariesResult};
+pub use lang::{Language, LanguageInfo, LanguageType};
+pub use text::{TextOptions, SplitSentences, Formality, TagHandling, TranslateTextResult, Translation};
 
 // Sets the user agent request header value, e.g. 'deeprl/0.1.0'
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -80,23 +80,29 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// Crate error variants
 #[derive(Debug, Error, PartialEq)]
 pub enum Error {
+    /// General client side error
     #[error("{0}")]
     Client(String),
+    /// Error sent from the server
     #[error("{0} {1}")]
     Server(StatusCode, String),
+    /// Error deserializing response
     #[error("error deserializing response")]
     Deserialize,
+    /// Invalid request
     #[error("invalid request")]
     InvalidRequest,
+    /// Invalid language
     #[error("invalid language")]
     InvalidLanguage,
+    /// Invalid response
     #[error("invalid response")]
     InvalidResponse,
 }
 
 /// Server error type
 #[derive(Debug, Deserialize)]
-pub struct ServerError {
+struct ServerError {
     message: String,
 }
 
