@@ -1,5 +1,60 @@
 //! # Manage glossaries
 //!
+//! [`DeepL`] supports creating custom glossaries, i.e. a collection of entries which when used in a translation
+//! ensures that a given word from the source language always maps to the same target word provided by the glossary,
+//! giving a user more control in cases where translation might otherwise be unreliable or ambiguous. A given glossary 
+//! is defined by one source language and one target language where the source word in each entry is unique.
+//! 
+//! ## Example
+//! In the below example, we've created a csv file called `glossary.csv` with two entries:
+//! ```
+//! hello, ciao
+//! goodbye, ciao
+//! ```
+//! ```
+//! use deeprl::*;
+//! use std::{env, fs};
+//! 
+//! let dl = DeepL::new(
+//!     &env::var("DEEPL_API_KEY").unwrap()
+//! );
+//! 
+//! // Create a new glossary
+//! let name = "my_glossary".to_string();
+//! let source_lang = Language::EN;
+//! let target_lang = Language::IT;
+//! let entries = fs::read_to_string("glossary.csv").unwrap();
+//! let fmt = GlossaryEntriesFormat::Csv;
+//! 
+//! let glossary = dl.glossary_new(
+//!     name,
+//!     source_lang,
+//!     target_lang,
+//!     entries,
+//!     fmt
+//! )
+//! .unwrap();
+//! 
+//! let glos_id = glossary.glossary_id; // save this!
+//!     
+//! // Use glossary for translation
+//! let text = vec![
+//!     "hello".to_string(),
+//!     "goodbye".to_string(),
+//! ];
+//! let opt = TextOptions::new(target_lang)
+//!     .source_lang(source_lang)
+//!     .glossary_id(glos_id.clone());
+//! 
+//! let result = dl.translate(opt, text).unwrap();
+//! let hello = &result.translations[0].text;
+//! let goodbye = &result.translations[1].text;
+//! assert_eq!(hello, "ciao");
+//! assert_eq!(goodbye, "ciao");
+//!
+//! // Destroy a glossary
+//! dl.glossary_del(&glos_id);
+//! ```
 use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
@@ -154,7 +209,8 @@ impl DeepL {
 
     /// GET /glossaries/`{glossary_id}`/entries
     ///
-    /// Retrieve entries for a specified glossary. Currently supports receiving entries in TSV format.
+    /// Retrieve entries for a specified glossary. 
+    // Currently supports receiving entries in TSV format.
     pub fn glossary_entries(&self, glossary_id: &str) -> Result<HashMap<String, String>> {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
