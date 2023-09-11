@@ -1,7 +1,10 @@
+//! # Translate text
+//!
 //! To translate text all we need is to specify a target language and a chunk of text to translate.
 //! In addition, the [`TextOptions`] type exposes a number of methods used to control formatting, 
 //! set a desired formality, or tell the server how to handle HTML or XML tags.
 //! 
+//! ## Example
 //! ```
 //! // Translate text with some options
 //! use deeprl::*;

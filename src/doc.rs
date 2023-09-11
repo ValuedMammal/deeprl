@@ -1,5 +1,38 @@
 //! # Translate documents
 //!
+//! Translating a document consists of three steps: upload, polling translation status, and download. `document_upload`
+//! returns a document handle that we need to store in order to complete the remaining steps first calling 
+//! `document_status` and finally fetching the translation result with `document_download`. 
+//! 
+//! In case there's an issue with translation, [`DocumentStatus`] contains an `error_message` field which may provide
+//! extra context from the server.
+//! 
+//! ## Example
+//! ```
+//! // Upload a document
+//! use deeprl::*;
+//! use std::{env, fs, path::PathBuf};
+//! 
+//! let dl = DeepL::new(
+//!    &env::var("DEEPL_API_KEY").unwrap()
+//! );
+//! let fp = PathBuf::from("test.txt"); // "good morning"
+//! let target_lang = Language::DE;
+//! let opt = DocumentOptions::new(target_lang, fp);
+//! let doc = dl.document_upload(opt).unwrap();
+//!
+//! // time passes...
+//! 
+//! // Check status and download
+//! let status = dl.document_status(&doc).unwrap();
+//! if status.is_done() {
+//!     let fp = PathBuf::from("de-test.txt");
+//!     let out_file = dl.document_download(doc, Some(fp)).unwrap();
+//!     
+//!     let content = fs::read_to_string(out_file).unwrap();
+//!     assert!(content.contains("Guten Morgen"));
+//! }
+//! ```
 use reqwest::blocking::multipart;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
