@@ -161,7 +161,7 @@ let glossary = String::from("abc-123"); // your glossary id
 
 let opt = TextOptions::new(Language::FR) // note `new` expects the required target lang
     .source_lang(Language::EN)
-    .split_sentences(SplitSentences::NoNewlines)
+    .split_sentences(SplitSentences::None)
     .preserve_formatting(true)
     .formality(Formality::PreferLess)
     .glossary_id(glossary);
