@@ -1,7 +1,9 @@
 use std::{env, path::PathBuf, str::FromStr, thread, time::Duration, io::Write};
 
 use super::*;
-use crate::{doc::*, glos::*, lang::*, text::*};
+// use crate::{doc::*, glos::*, lang::*, text::*};
+
+const KEY: &'static str = env!("DEEPL_API_KEY");
 
 #[test]
 fn configure() {
@@ -80,13 +82,13 @@ fn translate_text() {
 
 #[test]
 fn translate_options() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     let opt = TextOptions::new(Language::FR)
         .source_lang(Language::EN)
-        .split_sentences(SplitSentences::NoNewlines)
+        .split_sentences(SplitSentences::None)
         .preserve_formatting(true)
-        .formality(text::Formality::PreferLess);
+        .formality(Formality::PreferLess);
 
     // newline in the text string
     // lowercase, no punctuation
@@ -249,4 +251,54 @@ fn glossary_all() {
     let expect = Error::Client(code.to_string());
     let resp = dl.glossary_info(&glos_id);
     assert_eq!(resp.unwrap_err(), expect);
+}
+
+// Doc tests
+#[test]
+fn doc_text_options() {
+    let dl = DeepL::new(
+        &std::env::var("DEEPL_API_KEY").unwrap()  
+    );
+
+    let text = vec![
+        "you are nice \nthe red crab".to_string(),
+    ];
+    let target_lang = Language::FR;
+
+    let opt = TextOptions::new(target_lang)
+        .split_sentences(SplitSentences::None)
+        .preserve_formatting(true)
+        .formality(Formality::PreferLess);
+
+    let translations = dl.translate(opt, text)
+        .unwrap()
+        .translations;
+
+    assert_eq!(
+        &translations[0].text,
+        "tu es gentil le crabe rouge"
+    );
+}
+
+#[test]
+fn doc_text_html() {
+    let dl = DeepL::new(KEY);
+
+    let html = r#"
+<h2 class="notranslate">good morning</h2>
+<p>good morning</p>"#
+    .to_string();
+
+    let text = vec![html];
+    let opt = TextOptions::new(Language::ES)
+        .tag_handling(TagHandling::Html)
+        .outline_detection(false);
+    let trans = dl.translate(opt, text)
+        .unwrap()
+        .translations;
+
+    let text = &trans[0].text;
+    // dbg!(text);
+    assert!(text.contains("good morning"));
+    assert!(text.contains("buenos días"));
 }

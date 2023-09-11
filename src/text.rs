@@ -1,5 +1,57 @@
-//! # Translate text
-//!
+//! To translate text all we need is to specify a target language and a chunk of text to translate.
+//! In addition, the [`TextOptions`] type exposes a number of methods used to control formatting, 
+//! set a desired formality, or tell the server how to handle HTML or XML tags.
+//! 
+//! ```
+//! // Translate text with some options
+//! use deeprl::*;
+//! 
+//! let dl = DeepL::new(
+//!     &std::env::var("DEEPL_API_KEY").unwrap()  
+//! );
+//! 
+//! let text = vec![
+//!     "you are nice \nthe red crab".to_string(),
+//! ];
+//! 
+//! let opt = TextOptions::new(Language::FR)
+//!     .split_sentences(SplitSentences::None)
+//!     .preserve_formatting(true)
+//!     .formality(Formality::PreferLess);
+//! 
+//! let result = dl.translate(opt, text).unwrap();
+//! let translation = &result.translations[0];
+//! 
+//! assert_eq!(
+//!     translation.text,
+//!     "tu es gentil le crabe rouge"
+//! );
+//! ```
+//! ```
+//! // Translate text inside HTML. Note we can skip translation 
+//! // for tags with a special attribute.
+//! use deeprl::*;
+//! 
+//! let dl = DeepL::new(
+//!     &std::env::var("DEEPL_API_KEY").unwrap()
+//! );
+//! 
+//! let html = r#"
+//! <h2 class="notranslate">good morning</h2>
+//! <p>good morning</p>"#
+//!     .to_string();
+//! 
+//! let text = vec![html];
+//! let opt = TextOptions::new(Language::ES)
+//!     .tag_handling(TagHandling::Html)
+//!     .outline_detection(false);
+//! 
+//! let result = dl.translate(opt, text).unwrap();
+//! let translation = &result.translations[0];
+//! 
+//! assert!(translation.text.contains("good morning"));
+//! assert!(translation.text.contains("buenos días"));
+//! ```
 use super::*;
 use crate::lang::Language;
 use serde::Deserialize;

@@ -46,7 +46,7 @@
 //! // Used: 42/500000
 //! ```
 //!
-//! `DeepL` also allows translating documents and creating custom glossaries.
+//! [`DeepL`] also allows translating documents and creating custom glossaries.
 //!
 //! # License
 //! This project is licenced under MIT license.
