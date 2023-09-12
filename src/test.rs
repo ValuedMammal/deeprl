@@ -1,7 +1,5 @@
 use std::{env, path::PathBuf, str::FromStr, thread, time::Duration, io::Write};
-
 use super::*;
-// use crate::{doc::*, glos::*, lang::*, text::*};
 
 const KEY: &'static str = env!("DEEPL_API_KEY");
 
@@ -14,8 +12,7 @@ fn configure() {
         .build()
         .unwrap();
 
-    let key = env::var("DEEPL_API_KEY").unwrap();
-    let mut dl = DeepL::new(&key);
+    let mut dl = DeepL::new(KEY);
     dl.client(client);
     dl.set_app_info(app.to_owned());
 
@@ -24,13 +21,13 @@ fn configure() {
     let headers = req.headers();
 
     assert_eq!(headers.get("User-Agent").unwrap(), header::HeaderValue::from_static(app));
-    let auth = format!("DeepL-Auth-Key {}", key);
+    let auth = format!("DeepL-Auth-Key {}", KEY);
     assert_eq!(headers.get("Authorization").unwrap(), header::HeaderValue::from_str(&auth).unwrap());
 }
 
 #[test]
 fn usage() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     let resp = dl.usage();
     assert!(resp.is_ok());
@@ -41,32 +38,30 @@ fn usage() {
 
 #[test]
 fn languages() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
-    let source_langs = dl.languages(LanguageType::Source).unwrap();
+    let langs = dl.languages(LanguageType::Source).unwrap();
     let target_langs = dl.languages(LanguageType::Target).unwrap();
 
-    // collect language codes ['EN', ...]
-    let mut v: Vec<String> = vec![];
-    for lang in source_langs {
-        v.push(lang.language);
-    }
-    for lang in target_langs {
-        v.push(lang.language);
-    }
-
     // test we have modeled all available langs
-    // need to run with --nocapture ?
-    let l: Vec<Language> = v.iter()
-        .map(|s| Language::from_str(&s).map_err(|_| dbg!(s)).unwrap())
+    // should run with --show-output
+    let _: Vec<Language> = langs
+        .iter()
+        .chain(target_langs.iter())
+        .map(|info| {
+            let code = &info.language;
+            let name = &info.name;
+            Language::from_str(code).map_err(|_| {
+                println!("Failed to convert lang: {code} {name}")
+            })
+            .unwrap()
+        })
         .collect();
-
-    assert_eq!(v.len(), l.len());
 }
 
 #[test]
 fn translate_text() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     let src = Language::EN;
 
@@ -104,7 +99,7 @@ fn translate_options() {
 
 #[test]
 fn translate_tags() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     let xml = r"
 <xml>
@@ -138,7 +133,7 @@ fn translate_tags() {
 
 #[test]
 fn document() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     // create file
     let text = "good morning".to_string();
@@ -176,7 +171,7 @@ fn document() {
 #[test]
 fn glossary_pairs() {
     // get supported glossary language pairs
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     let result = dl.glossary_languages().unwrap();
     let pairs = result.supported_languages;
@@ -188,7 +183,7 @@ fn glossary_pairs() {
 #[test]
 fn glossaries() {
     // list available glossaries
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     let result = dl.glossaries().unwrap();
     let glossaries = result.glossaries;
@@ -200,7 +195,7 @@ fn glossaries() {
 
 #[test]
 fn glossary_all() {
-    let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    let dl = DeepL::new(KEY);
 
     // create csv file with two glossary entries
     let entry = "hello,ciao\n".to_string();
@@ -256,9 +251,7 @@ fn glossary_all() {
 // Doc tests
 #[test]
 fn doc_text_options() {
-    let dl = DeepL::new(
-        &std::env::var("DEEPL_API_KEY").unwrap()  
-    );
+    let dl = DeepL::new(KEY);
 
     let text = vec![
         "you are nice \nthe red crab".to_string(),
