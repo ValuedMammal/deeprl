@@ -217,17 +217,12 @@ impl fmt::Display for Language {
     }
 }
 
-impl LanguageInfo {
+impl Default for LanguageInfo {
     /// Provides serde with a default value for `supports_formality`, since
     /// the field is only returned for target lang (not source).
     /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
-    #[allow(unused)]
-    fn new(language: String, name: String) -> Self {
-        Self {
-            language,
-            name,
-            supports_formality: None,
-        }
+    fn default() -> Self {
+        Self { language: String::default(), name: String::default(), supports_formality: None }
     }
 }
 
