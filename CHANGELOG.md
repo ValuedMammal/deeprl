@@ -5,7 +5,10 @@ All notable changes will be documented in this file. This project adheres to sem
 ## [Unreleased]
 
 ### In progress
-- improve documentation (need examples for text, document and glossary)
+
+## [0.2.1] - 2023-09-13
+### Added
+- Improved crate documentation
 
 ## [0.2.0] - 2023-07-20
 
