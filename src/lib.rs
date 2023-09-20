@@ -89,7 +89,7 @@ pub enum Error {
     #[error("{0}")]
     Client(String),
     /// Error sent from the server
-    #[error("{0} {1}")]
+    #[error("{0}: {1}")]
     Server(StatusCode, String),
     /// Error deserializing response
     #[error("error deserializing response")]
@@ -252,11 +252,7 @@ impl DeepL {
 /// Attempt to parse an error in case of unsuccessful request
 fn convert<T>(resp: reqwest::blocking::Response) -> Result<T> {
     let code = resp.status();
-    if code.is_client_error() {
-        return Err(Error::Client(code.to_string()));
-    }
     let resp: ServerError = resp.json().map_err(|_| Error::InvalidResponse)?;
-
     Err(Error::Server(code, resp.message))
 }
 
