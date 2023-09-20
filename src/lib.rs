@@ -58,10 +58,15 @@ pub mod doc;
 pub mod glos;
 pub mod lang;
 pub mod text;
-pub use doc::{Document, DocumentOptions, DocumentStatus, DocState};
-pub use glos::{Glossary, GlossaryLanguagePairsResult, GlossaryLanguagePair, GlossaryEntriesFormat, GlossariesResult};
+pub use doc::{DocState, Document, DocumentOptions, DocumentStatus};
+pub use glos::{
+    GlossariesResult, Glossary, GlossaryEntriesFormat, GlossaryLanguagePair,
+    GlossaryLanguagePairsResult,
+};
 pub use lang::{Language, LanguageInfo, LanguageType};
-pub use text::{TextOptions, SplitSentences, Formality, TagHandling, TranslateTextResult, Translation};
+pub use text::{
+    Formality, SplitSentences, TagHandling, TextOptions, TranslateTextResult, Translation,
+};
 
 // Sets the user agent request header value, e.g. 'deeprl/0.1.0'
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -147,7 +152,6 @@ macro_rules! builder {
                 }
                 $(
                     #[doc = "Setter for `" $opt_field "`"]
-                    #[must_use]
                     pub fn $opt_field(mut self, $opt_field: $opt_type) -> Self {
                         self.$opt_field = Some($opt_field);
                         self
@@ -220,10 +224,16 @@ impl DeepL {
             APP_USER_AGENT.to_string()
         };
         let mut map = reqwest::header::HeaderMap::new();
-        map.insert(header::USER_AGENT, header::HeaderValue::from_str(&app).unwrap());
+        map.insert(
+            header::USER_AGENT,
+            header::HeaderValue::from_str(&app).unwrap(),
+        );
 
         // auth
-        map.insert(header::AUTHORIZATION, header::HeaderValue::from_str(&self.auth).unwrap());
+        map.insert(
+            header::AUTHORIZATION,
+            header::HeaderValue::from_str(&self.auth).unwrap(),
+        );
         map
     }
 

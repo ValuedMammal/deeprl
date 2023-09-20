@@ -2,9 +2,9 @@
 //!
 //! [`DeepL`] supports creating custom glossaries, i.e. a collection of entries which when used in a translation
 //! ensures that a given word from the source language always maps to the same target word provided by the glossary,
-//! giving a user more control in cases where translation might otherwise be unreliable or ambiguous. A given glossary 
+//! giving a user more control in cases where translation might otherwise be unreliable or ambiguous. A given glossary
 //! is defined by one source language and one target language where the source word in each entry is unique.
-//! 
+//!
 //! ## Example
 //! In the below example, we've created a csv file called `glossary.csv` with two entries:
 //! ```
@@ -14,18 +14,18 @@
 //! ```
 //! use deeprl::*;
 //! use std::{env, fs};
-//! 
+//!
 //! let dl = DeepL::new(
 //!     &env::var("DEEPL_API_KEY").unwrap()
 //! );
-//! 
+//!
 //! // Create a new glossary
 //! let name = "my_glossary".to_string();
 //! let source_lang = Language::EN;
 //! let target_lang = Language::IT;
 //! let entries = fs::read_to_string("glossary.csv").unwrap();
 //! let fmt = GlossaryEntriesFormat::Csv;
-//! 
+//!
 //! let glossary = dl.glossary_new(
 //!     name,
 //!     source_lang,
@@ -34,7 +34,7 @@
 //!     fmt
 //! )
 //! .unwrap();
-//! 
+//!
 //! let glos_id = glossary.glossary_id; // save this!
 //!     
 //! // Use glossary for translation
@@ -45,7 +45,7 @@
 //! let opt = TextOptions::new(target_lang)
 //!     .source_lang(source_lang)
 //!     .glossary_id(glos_id.clone());
-//! 
+//!
 //! let result = dl.translate(opt, text).unwrap();
 //! let hello = &result.translations[0].text;
 //! let goodbye = &result.translations[1].text;
@@ -165,7 +165,8 @@ impl DeepL {
             ("entries_format", fmt.to_string()),
         ]);
 
-        let resp = self.post(url)
+        let resp = self
+            .post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::InvalidRequest)?;
@@ -209,13 +210,14 @@ impl DeepL {
 
     /// GET /glossaries/`{glossary_id}`/entries
     ///
-    /// Retrieve entries for a specified glossary. 
+    /// Retrieve entries for a specified glossary.
     // Currently supports receiving entries in TSV format.
     pub fn glossary_entries(&self, glossary_id: &str) -> Result<HashMap<String, String>> {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
 
-        let resp = self.get(url)
+        let resp = self
+            .get(url)
             .header(header::ACCEPT, accept)
             .send()
             .map_err(|_| Error::InvalidRequest)?;
@@ -225,16 +227,19 @@ impl DeepL {
         }
 
         let t = resp.text().map_err(|_| Error::InvalidResponse).unwrap();
-
-        // split /n
-        let mut map = HashMap::new();
+        // The response text contains newline-separated entries
+        // where each entry contains two strings separated by a tab.
+        // First we split entries on '\n', then for each entry, split words
+        // on '\t' and build a map of source to target words
         let raw_entries: Vec<&str> = t.split('\n').collect();
-
-        // split /t
+        
+        let mut map = HashMap::new();
         for entry in raw_entries {
-            let elems: Vec<&str> = entry.split('\t').collect();
-            if elems.len() != 2 { continue }
-            map.insert(elems[0].to_owned(), elems[1].to_owned());
+            let words: Vec<&str> = entry.split('\t').collect();
+            if words.len() != 2 {
+                continue;
+            }
+            map.insert(words[0].to_string(), words[1].to_string());
         }
 
         Ok(map)

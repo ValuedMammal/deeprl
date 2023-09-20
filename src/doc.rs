@@ -1,18 +1,18 @@
 //! # Translate documents
 //!
 //! Translating a document consists of three steps: upload, polling translation status, and download. `document_upload`
-//! returns a document handle that we need to store in order to complete the remaining steps first calling 
-//! `document_status` and finally fetching the translation result with `document_download`. 
-//! 
+//! returns a document handle that we need to store in order to complete the remaining steps first calling
+//! `document_status` and finally fetching the translation result with `document_download`.
+//!
 //! In case there's an issue with translation, [`DocumentStatus`] contains an `error_message` field which may provide
 //! extra context from the server.
-//! 
+//!
 //! ## Example
 //! ```
 //! // Upload a document
 //! use deeprl::*;
 //! use std::{env, fs, path::PathBuf};
-//! 
+//!
 //! let dl = DeepL::new(
 //!    &env::var("DEEPL_API_KEY").unwrap()
 //! );
@@ -22,7 +22,7 @@
 //! let doc = dl.document_upload(opt).unwrap();
 //!
 //! // time passes...
-//! 
+//!
 //! // Check status and download
 //! let status = dl.document_status(&doc).unwrap();
 //! if status.is_done() {
@@ -137,7 +137,8 @@ impl DeepL {
 
         let form = opt.into_multipart()?;
 
-        let resp = self.post(url)
+        let resp = self
+            .post(url)
             .multipart(form)
             .send()
             .map_err(|_| Error::InvalidRequest)?;
@@ -159,7 +160,8 @@ impl DeepL {
         let key = doc.document_key.clone();
         let params = vec![("document_key", key)];
 
-        let resp = self.post(url)
+        let resp = self
+            .post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::InvalidRequest)?;
@@ -180,7 +182,8 @@ impl DeepL {
 
         let params = vec![("document_key", doc.document_key)];
 
-        let mut resp = self.post(url)
+        let mut resp = self
+            .post(url)
             .form(&params)
             .send()
             .map_err(|_| Error::InvalidRequest)?;

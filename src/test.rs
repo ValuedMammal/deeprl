@@ -1,5 +1,5 @@
-use std::{env, path::PathBuf, str::FromStr, thread, time::Duration, io::Write};
 use super::*;
+use std::{env, io::Write, path::PathBuf, str::FromStr, thread, time::Duration};
 
 const KEY: &'static str = env!("DEEPL_API_KEY");
 
@@ -20,9 +20,15 @@ fn configure() {
     let req = dl.get(url).build().unwrap();
     let headers = req.headers();
 
-    assert_eq!(headers.get("User-Agent").unwrap(), header::HeaderValue::from_static(app));
+    assert_eq!(
+        headers.get("User-Agent").unwrap(),
+        header::HeaderValue::from_static(app)
+    );
     let auth = format!("DeepL-Auth-Key {}", KEY);
-    assert_eq!(headers.get("Authorization").unwrap(), header::HeaderValue::from_str(&auth).unwrap());
+    assert_eq!(
+        headers.get("Authorization").unwrap(),
+        header::HeaderValue::from_str(&auth).unwrap()
+    );
 }
 
 #[test]
@@ -42,10 +48,11 @@ fn languages() {
 
     // fetch source langs
     let langs = dl.languages(LanguageType::Source).unwrap();
-    
+
     // fetch target langs, filtering duplicates
     let target_langs = dl.languages(LanguageType::Target).unwrap();
-    let target_langs: Vec<LanguageInfo> = target_langs.into_iter()
+    let target_langs: Vec<LanguageInfo> = target_langs
+        .into_iter()
         .filter(|l| {
             let code = &l.language;
             for src_lang in &langs {
@@ -65,10 +72,9 @@ fn languages() {
         .map(|info| {
             let code = &info.language;
             let name = &info.name;
-            Language::from_str(code).map_err(|_| {
-                println!("Failed to convert lang: {code} {name}")
-            })
-            .unwrap()
+            Language::from_str(code)
+                .map_err(|_| println!("Failed to convert lang: {code} {name}"))
+                .unwrap()
         })
         .collect();
 }
@@ -214,7 +220,7 @@ fn glossary_all() {
     // create csv file with two glossary entries
     let entry = "hello,ciao\n".to_string();
     std::fs::write("glos.csv", entry).unwrap();
-    
+
     let entry = "goodbye,ciao\n".to_string();
     let _wrote = std::fs::OpenOptions::new()
         .append(true)
@@ -265,16 +271,16 @@ fn glossary_all() {
 #[test]
 fn test_error() {
     let dl = DeepL::new(KEY);
-    
+
     // translate using an invalid match
     let res = dl.translate(
         TextOptions::new(
             // bad target lang
-            Language::PT
+            Language::PT,
         )
         // bad source lang
-        .source_lang(Language::ENGB), 
-        vec!["good morning".to_string()]
+        .source_lang(Language::ENGB),
+        vec!["good morning".to_string()],
     );
     assert!(res.is_err());
 }
@@ -284,9 +290,7 @@ fn test_error() {
 fn doc_text_options() {
     let dl = DeepL::new(KEY);
 
-    let text = vec![
-        "you are nice \nthe red crab".to_string(),
-    ];
+    let text = vec!["you are nice \nthe red crab".to_string()];
     let target_lang = Language::FR;
 
     let opt = TextOptions::new(target_lang)
@@ -294,14 +298,9 @@ fn doc_text_options() {
         .preserve_formatting(true)
         .formality(Formality::PreferLess);
 
-    let translations = dl.translate(opt, text)
-        .unwrap()
-        .translations;
+    let translations = dl.translate(opt, text).unwrap().translations;
 
-    assert_eq!(
-        &translations[0].text,
-        "tu es gentil le crabe rouge"
-    );
+    assert_eq!(&translations[0].text, "tu es gentil le crabe rouge");
 }
 
 #[test]
@@ -311,15 +310,13 @@ fn doc_text_html() {
     let html = r#"
 <h2 class="notranslate">good morning</h2>
 <p>good morning</p>"#
-    .to_string();
+        .to_string();
 
     let text = vec![html];
     let opt = TextOptions::new(Language::ES)
         .tag_handling(TagHandling::Html)
         .outline_detection(false);
-    let trans = dl.translate(opt, text)
-        .unwrap()
-        .translations;
+    let trans = dl.translate(opt, text).unwrap().translations;
 
     let text = &trans[0].text;
     // dbg!(text);
