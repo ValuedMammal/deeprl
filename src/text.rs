@@ -228,6 +228,9 @@ impl DeepL {
     /// POST /translate
     ///
     /// Translate one or more text strings
+    /// 
+    /// ## Errors
+    /// If target language and (optionally provided) source language are an invalid pair
     pub fn translate(&self, opt: TextOptions, text: Vec<String>) -> Result<TranslateTextResult> {
         if text.is_empty() || text[0].is_empty() {
             return Err(Error::Client("empty text parameter".to_string()));

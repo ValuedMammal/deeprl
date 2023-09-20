@@ -40,8 +40,22 @@ fn usage() {
 fn languages() {
     let dl = DeepL::new(KEY);
 
+    // fetch source langs
     let langs = dl.languages(LanguageType::Source).unwrap();
+    
+    // fetch target langs, filtering duplicates
     let target_langs = dl.languages(LanguageType::Target).unwrap();
+    let target_langs: Vec<LanguageInfo> = target_langs.into_iter()
+        .filter(|l| {
+            let code = &l.language;
+            for src_lang in &langs {
+                if code == &src_lang.language {
+                    return false;
+                }
+            }
+            true
+        })
+        .collect();
 
     // test we have modeled all available langs
     // should run with --show-output
@@ -246,6 +260,23 @@ fn glossary_all() {
     let expect = Error::Client(code.to_string());
     let resp = dl.glossary_info(&glos_id);
     assert_eq!(resp.unwrap_err(), expect);
+}
+
+#[test]
+fn test_error() {
+    let dl = DeepL::new(KEY);
+    
+    // translate using an invalid match
+    let res = dl.translate(
+        TextOptions::new(
+            // bad target lang
+            Language::PT
+        )
+        // bad source lang
+        .source_lang(Language::ENGB), 
+        vec!["good morning".to_string()]
+    );
+    assert!(res.is_err());
 }
 
 // Doc tests
