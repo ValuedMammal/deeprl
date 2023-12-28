@@ -377,4 +377,4 @@ let result = dl.glossary_del(&glos_id);
 assert!(result.is_ok());
 ```
 
-To remove a glossary, call the `glossary_del` method passing a reference to the `glossary_id`. The function returns `Result<()>` where the success value is the empty type `()`.
+To remove a glossary, call the `glossary_del` method passing a reference to the `glossary_id`. The function returns `Result<()>` where the success value is an empty tuple.
