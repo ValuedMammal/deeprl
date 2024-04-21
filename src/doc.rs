@@ -136,7 +136,7 @@ impl DeepL {
             .post(url)
             .multipart(form)
             .send()
-            .map_err(|_| Error::InvalidRequest)?;
+            .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -161,7 +161,7 @@ impl DeepL {
             .post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::InvalidRequest)?;
+            .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -172,7 +172,10 @@ impl DeepL {
 
     /// POST /document/`{document_id}`/result
     ///
-    /// Download translated document
+    /// Download translated document.
+    ///
+    /// If no `out_file` is given, the returned file path will have the name of the
+    /// [`Document`] id.
     pub fn document_download(&self, doc: Document, out_file: Option<PathBuf>) -> Result<PathBuf> {
         let doc_id = doc.document_id;
         let url = format!("{}/document/{}/result", self.url, doc_id);
@@ -183,21 +186,18 @@ impl DeepL {
             .post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::InvalidRequest)?;
+            .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
         }
 
         // write out file
-        let mut buf: Vec<u8> = Vec::with_capacity(100 * 1024);
-        resp.copy_to(&mut buf)
-            .map_err(|_| Error::Client("could not copy response data".to_string()))?;
+        let mut buf: Vec<u8> = vec![];
+        let _ = resp.copy_to(&mut buf).map_err(Error::Reqwest)?;
 
         let path = out_file.unwrap_or(PathBuf::from(doc_id));
-
-        std::fs::write(&path, buf)
-            .map_err(|_| Error::Client("failed to write out file".to_string()))?;
+        std::fs::write(&path, buf).map_err(Error::Io)?;
 
         Ok(path)
     }

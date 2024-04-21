@@ -54,8 +54,10 @@
 #![warn(missing_docs)]
 
 use serde::Deserialize;
+use std::io;
 
-use reqwest::{header, StatusCode};
+use reqwest::header;
+use reqwest::StatusCode;
 use thiserror::Error;
 
 mod doc;
@@ -88,7 +90,7 @@ pub struct DeepL {
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Crate error variants
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error)]
 pub enum Error {
     /// General client side error
     #[error("{0}")]
@@ -100,8 +102,11 @@ pub enum Error {
     #[error("error deserializing response")]
     Deserialize,
     /// Invalid request
-    #[error("invalid request")]
-    InvalidRequest,
+    #[error("invalid request {0}")]
+    Reqwest(reqwest::Error),
+    /// Io
+    #[error("{0}")]
+    Io(io::Error),
     /// Invalid language
     #[error("invalid language")]
     InvalidLanguage,
@@ -248,7 +253,7 @@ impl DeepL {
     /// Get account usage
     pub fn usage(&self) -> Result<Usage> {
         let url = format!("{}/usage", self.url);
-        let resp = self.get(url).send().map_err(|_| Error::InvalidRequest)?;
+        let resp = self.get(url).send().map_err(Error::Reqwest)?;
         let usage: Usage = resp.json().map_err(|_| Error::Deserialize)?;
 
         Ok(usage)

@@ -229,7 +229,7 @@ impl DeepL {
             .post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::InvalidRequest)?;
+            .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);

@@ -246,11 +246,7 @@ impl DeepL {
         // get, query "type"
         let q = vec![("type", kind)];
 
-        let resp = self
-            .get(url)
-            .query(&q)
-            .send()
-            .map_err(|_| Error::InvalidRequest)?;
+        let resp = self.get(url).query(&q).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);

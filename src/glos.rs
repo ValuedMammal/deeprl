@@ -81,7 +81,7 @@ impl DeepL {
     pub fn glossary_languages(&self) -> Result<GlossaryLanguagePairsResult> {
         let url = format!("{}/glossary-language-pairs", self.url);
 
-        let resp = self.get(url).send().map_err(|_| Error::InvalidRequest)?;
+        let resp = self.get(url).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -143,7 +143,7 @@ impl DeepL {
             .post(url)
             .form(&params)
             .send()
-            .map_err(|_| Error::InvalidRequest)?;
+            .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -158,7 +158,7 @@ impl DeepL {
     pub fn glossaries(&self) -> Result<GlossariesResult> {
         let url = format!("{}/glossaries", self.url);
 
-        let resp = self.get(url).send().map_err(|_| Error::InvalidRequest)?;
+        let resp = self.get(url).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -173,7 +173,7 @@ impl DeepL {
     pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let resp = self.get(url).send().map_err(|_| Error::InvalidRequest)?;
+        let resp = self.get(url).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -194,7 +194,7 @@ impl DeepL {
             .get(url)
             .header(header::ACCEPT, accept)
             .send()
-            .map_err(|_| Error::InvalidRequest)?;
+            .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);
@@ -225,7 +225,7 @@ impl DeepL {
     pub fn glossary_delete(&self, glossary_id: &str) -> Result<()> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
-        let _ = self.delete(url).send().map_err(|_| Error::InvalidRequest);
+        let _ = self.delete(url).send().map_err(Error::Reqwest);
 
         Ok(())
     }
