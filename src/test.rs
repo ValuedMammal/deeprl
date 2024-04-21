@@ -258,7 +258,7 @@ fn glossary_all() {
     assert_eq!(translations[0].text, "ciao");
 
     // test delete
-    let _: () = dl.glossary_del(&glos_id).unwrap();
+    let _: () = dl.glossary_delete(&glos_id).unwrap();
     thread::sleep(Duration::from_secs(1));
 
     // deleted glossary id is 404

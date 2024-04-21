@@ -52,9 +52,10 @@
 //! assert_eq!(hello, "ciao");
 //! assert_eq!(goodbye, "ciao");
 //!
-//! // Destroy a glossary
-//! dl.glossary_del(&glos_id);
+//! // Delete a glossary
+//! dl.glossary_delete(&glos_id);
 //! ```
+
 use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
@@ -232,7 +233,7 @@ impl DeepL {
         // First we split entries on '\n', then for each entry, split words
         // on '\t' and build a map of source to target words
         let raw_entries: Vec<&str> = t.split('\n').collect();
-        
+
         let mut map = HashMap::new();
         for entry in raw_entries {
             let words: Vec<&str> = entry.split('\t').collect();
@@ -248,7 +249,7 @@ impl DeepL {
     /// DELETE /glossaries/`{glossary_id}`
     ///
     /// Destroy a glossary
-    pub fn glossary_del(&self, glossary_id: &str) -> Result<()> {
+    pub fn glossary_delete(&self, glossary_id: &str) -> Result<()> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
         let _ = self.delete(url).send().map_err(|_| Error::InvalidRequest);
