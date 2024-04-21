@@ -76,8 +76,6 @@ dl.client(client);
 
 We support sending a custom user agent along with requests. So for instance if you're using this library in another application, say *My App v1.2.3*, you can set the app name and version using `set_app_info`.
 ```rust
-// snip--
-
 dl.set_app_info(
     "my-app/1.2.3".to_string()
 );
@@ -100,8 +98,6 @@ Getting available `languages` requires specifying `LanguageType` as either `Sour
 All instances of `LanguageInfo` contain `language` and `name` attributes. Target languages contain a third field, `supports_formality` which is `true` or `false`. 
 
 ```rust
-// snip--
-
 let source_langs = dl.languages(LanguageType::Source).unwrap();
 
 for lang in source_langs {
@@ -149,22 +145,13 @@ Below is a more complex translation where we want to specify a source language, 
 The function `translate` expects two arguments: a `TextOptions` object, and a `Vec<String>` containing one or more texts to be translated. It returns a `Result` whose `Ok` value is a `TranslateTextResult` with a single field, `translations` that holds a `Vec<Translation>`. 
 
 ```rust
-// snip--
-
 // Translate 'you are nice' to French 
-// where the text contains a '\n'
 let text = vec![
-    "you\nare nice".to_string(),
+    "you are nice".to_string(),
 ];
-
-let glossary = String::from("abc-123"); // your glossary id
-
 let opt = TextOptions::new(Language::FR) // note `new` expects the required target lang
     .source_lang(Language::EN)
-    .split_sentences(SplitSentences::None)
-    .preserve_formatting(true)
     .formality(Formality::PreferLess)
-    .glossary_id(glossary);
 
 let result = dl.translate(opt, text).unwrap();
 
@@ -178,8 +165,6 @@ A `Translation` has two attributes: `text` containing the translated text string
 Here's an example where the input contains xml and where we only want to translate content inside the `<p>` tags.
 
 ```rust
-// snip--
-
 let xml = r"
 <xml>
     <head>
@@ -228,8 +213,6 @@ First, we create an instance of `DocumentOptions` which requires we know the tar
 - `glossary_id`: The id of the glossary to use for translation, `String`
 
 ```rust
-// snip--
-    
 // Upload a file in the current directory called 'test.txt'
 let target_lang = Language::DE;
 let file_path = std::path::PathBuf::from("test.txt");
@@ -257,17 +240,15 @@ Before we can download a finished document, we need to check the status of the t
 When translation is complete, `status` will be in a state of `DocState::Done`, and calling `is_done` on our `DocumentStatus` object returns true. We may then proceed with download.
 
 ```rust
-// snip--
-
 // Get the status of a document translation in progress
 let status = dl.document_status(&doc).unwrap();
 
 if status.is_done() {
     // Download translation result
-    let out_file = Some(PathBuf::from("de-test.txt"));
-    let path = dl.document_download(doc, out_file).unwrap();
-
-    println!("New translation result at: {path}");
+    let out_file = PathBuf::from("test-translated.txt");
+    let _ = dl.document_download(doc, Some(out_file.clone())).unwrap();
+    let content = std::fs::read_to_string(out_file).unwrap();
+    assert(!content.is_empty());
 }
 ```
 
@@ -283,8 +264,6 @@ The `glossary_languages` method takes no arguments and returns a `Result<Glossar
 A `GlossaryLanguagePair` contains two fields: `source_lang` and `target_lang` as strings.
 
 ```rust
-// snip--
-
 // Get supported glossary language pairs
 let result = dl.glossary_languages().unwrap();
 
@@ -324,8 +303,6 @@ Back in rust, we'll read the contents of the file to a string called `entries` a
 - `entry_count: u64`
 
 ```rust
-// snip--
-
 // Create a new glossary
 let name = "my_glossary".to_string();
 let src = Language::EN;
@@ -351,8 +328,6 @@ We can get information from a glossary in different ways. Calling `glossary_info
 To retrieve the actual entries, we use the `glossary_entries` method with a valid `glossary_id`. The function returns a `Result<HashMap<String, String>>` where the `Ok` value is a collection mapping a unique source word to its target translation.
 
 ```rust
-// snip--
-
 // Get glossary info
 // recall `glos_id` is the glossary id we obtained earlier
 let glossary = dl.glossary_info(&glos_id).unwrap();
@@ -373,8 +348,8 @@ for (key, value) in entries {
 }
 
 // Remove an unwanted glossary
-let result = dl.glossary_del(&glos_id);
+let result = dl.glossary_delete(&glos_id);
 assert!(result.is_ok());
 ```
 
-To remove a glossary, call the `glossary_del` method passing a reference to the `glossary_id`. The function returns `Result<()>` where the success value is an empty tuple.
+To remove a glossary, call the `glossary_delete` method passing a reference to the `glossary_id`. The function returns `Result<()>` where the success value is an empty tuple.
