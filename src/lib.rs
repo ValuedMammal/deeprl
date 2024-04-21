@@ -53,22 +53,24 @@
 
 #![warn(missing_docs)]
 
-use reqwest::{header, StatusCode};
 use serde::Deserialize;
+
+use reqwest::{header, StatusCode};
 use thiserror::Error;
 
-pub mod doc;
-pub mod glos;
-pub mod lang;
-pub mod text;
-pub use doc::{DocState, Document, DocumentOptions, DocumentStatus};
-pub use glos::{
-    GlossariesResult, Glossary, GlossaryEntriesFormat, GlossaryLanguagePair,
-    GlossaryLanguagePairsResult,
-};
-pub use lang::{Language, LanguageInfo, LanguageType};
-pub use text::{
-    Formality, SplitSentences, TagHandling, TextOptions, TranslateTextResult, Translation,
+mod doc;
+mod glos;
+mod lang;
+mod text;
+
+pub use {
+    doc::{DocState, Document, DocumentOptions, DocumentStatus},
+    glos::{
+        GlossariesResult, Glossary, GlossaryEntriesFormat, GlossaryLanguagePair,
+        GlossaryLanguagePairsResult,
+    },
+    lang::{Language, LanguageInfo, LanguageType},
+    text::{Formality, SplitSentences, TagHandling, TextOptions, TranslateTextResult, Translation},
 };
 
 // Sets the user agent request header value, e.g. 'deeprl/0.1.0'

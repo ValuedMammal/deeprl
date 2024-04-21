@@ -1,11 +1,10 @@
-//! glos
-
-use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
 
-use super::*;
-use crate::lang::Language;
+use reqwest::header;
+
+use super::{Error, Result};
+use crate::{DeepL, Language};
 
 /// A glossary language pair
 #[derive(Debug, Deserialize, Serialize)]

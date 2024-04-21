@@ -1,8 +1,7 @@
-//! text
-
-use super::*;
-use crate::lang::Language;
 use serde::Deserialize;
+
+use super::{Error, Result};
+use crate::{builder, DeepL, Language};
 
 /// Sets whether the translation engine should first split the input into sentences
 #[derive(Copy, Clone)]

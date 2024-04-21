@@ -1,8 +1,9 @@
-//! lang
-
-use super::*;
 use serde::{Deserialize, Serialize};
-use std::{fmt, str::FromStr};
+use std::fmt;
+use std::str::FromStr;
+
+use super::{Error, Result};
+use crate::DeepL;
 
 /// Language type. Note: this is currently only used when fetching language meta information.
 #[derive(Copy, Clone, Debug)]

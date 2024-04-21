@@ -1,11 +1,10 @@
-//! doc
-
-use reqwest::blocking::multipart;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use super::*;
-use crate::{lang::*, text::*};
+use reqwest::blocking::multipart;
+
+use super::{Error, Result};
+use crate::{builder, DeepL, Formality, Language};
 
 /// Document handle
 #[derive(Debug, Deserialize, Serialize)]
