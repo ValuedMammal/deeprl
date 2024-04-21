@@ -6,6 +6,13 @@ All notable changes will be documented in this file. This project adheres to sem
 
 ### In progress
 
+## [0.3.0] - 2024-04-21
+### Changed
+- Renamed DeepL method `glossary_del` to `glossary_delete`.
+
+### Fixed
+- Fixed a bug while parsing a server error.
+
 ## [0.2.1] - 2023-09-13
 ### Added
 - Improved crate documentation
