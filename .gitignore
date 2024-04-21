@@ -1,3 +1,10 @@
+# Cargo
 /target
 /Cargo.lock
-.env
+
+# dev notes
+notes.md
+
+# tests
+*.txt
+*.csv
