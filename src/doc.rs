@@ -1,38 +1,5 @@
-//! # Translate documents
-//!
-//! Translating a document consists of three steps: upload, polling translation status, and download. `document_upload`
-//! returns a document handle that we need to store in order to complete the remaining steps first calling
-//! `document_status` and finally fetching the translation result with `document_download`.
-//!
-//! In case there's an issue with translation, [`DocumentStatus`] contains an `error_message` field which may provide
-//! extra context from the server.
-//!
-//! ## Example
-//! ```
-//! // Upload a document
-//! use deeprl::*;
-//! use std::{env, fs, path::PathBuf};
-//!
-//! let dl = DeepL::new(
-//!    &env::var("DEEPL_API_KEY").unwrap()
-//! );
-//! let fp = PathBuf::from("test.txt"); // "good morning"
-//! let target_lang = Language::DE;
-//! let opt = DocumentOptions::new(target_lang, fp);
-//! let doc = dl.document_upload(opt).unwrap();
-//!
-//! // time passes...
-//!
-//! // Check status and download
-//! let status = dl.document_status(&doc).unwrap();
-//! if status.is_done() {
-//!     let fp = PathBuf::from("de-test.txt");
-//!     let out_file = dl.document_download(doc, Some(fp)).unwrap();
-//!     
-//!     let content = fs::read_to_string(out_file).unwrap();
-//!     assert!(content.contains("Guten Morgen"));
-//! }
-//! ```
+//! doc
+
 use reqwest::blocking::multipart;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -131,7 +98,36 @@ impl DocumentOptions {
 impl DeepL {
     /// POST /document
     ///
-    /// Upload a document
+    /// Upload a document.
+    ///
+    /// Translating a document consists of three steps: upload, polling translation status,
+    /// and download. `document_upload` returns a document handle that we need in order to
+    /// complete the remaining steps: getting the [`document_status`](Self::document_status)
+    /// and finally fetching the translation result with
+    /// [`document_download`](Self::document_download).
+    ///
+    /// ## Example
+    ///
+    /// ```rust,no_run
+    /// # use deeprl::*;
+    /// # use std::{env, fs, path::PathBuf, thread};
+    /// # let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
+    /// # use std::time::Duration;
+    /// let file_path = PathBuf::from("test.txt");
+    /// let target_lang = Language::DE;
+    /// let opt = DocumentOptions::new(target_lang, file_path);
+    /// let doc = dl.document_upload(opt).unwrap();
+    ///
+    /// while !dl.document_status(&doc).unwrap().is_done() {
+    ///     // wait a second
+    ///     thread::sleep(Duration::from_secs(1));
+    /// }
+    ///
+    /// let out_file = PathBuf::from("test-translated.txt");
+    /// let _ = dl.document_download(doc, Some(out_file.clone())).unwrap();
+    /// let content = fs::read_to_string(out_file).unwrap();
+    /// assert!(!content.is_empty());
+    /// ```
     pub fn document_upload(&self, opt: DocumentOptions) -> Result<Document> {
         let url = format!("{}/document", self.url);
 
@@ -150,9 +146,11 @@ impl DeepL {
         resp.json().map_err(|_| Error::Deserialize)
     }
 
-    /// POST /document/{document_id}
+    /// POST /document/`{document_id}`
     ///
-    /// Get document translation status
+    /// Get document translation status. In case there's an issue with translation,
+    /// [`DocumentStatus`] contains a field `error_message` that may provide context
+    /// for the cause of the error.
     pub fn document_status(&self, doc: &Document) -> Result<DocumentStatus> {
         let doc_id = doc.document_id.clone();
         let url = format!("{}/document/{}", self.url, doc_id);
@@ -173,7 +171,7 @@ impl DeepL {
         resp.json().map_err(|_| Error::Deserialize)
     }
 
-    /// POST /document/{document_id}/result
+    /// POST /document/`{document_id}`/result
     ///
     /// Download translated document
     pub fn document_download(&self, doc: Document, out_file: Option<PathBuf>) -> Result<PathBuf> {

@@ -1,37 +1,10 @@
-//! # Supported language variants
-//!
-//! [`DeepL`] translates to and from a variety of languages which are broadly categorized as either a `Source` or `Target`.
-//! Information about a language is obtained from the `/languages` endpoint as shown below.
-//!
-//! ## Example
-//! ```
-//! // Get a list of supported source languages
-//! use deeprl::{DeepL, LanguageType};
-//!
-//! let dl = DeepL::new(
-//!     &std::env::var("DEEPL_API_KEY").unwrap()
-//! );
-//!
-//! let source_langs = dl.languages(LanguageType::Source).unwrap();
-//! assert!(!source_langs.is_empty());
-//! ```
-//!
-//! Please note that while many [`Language`] variants are interchangeable as both source and target languages, there are exceptions,
-//! for example when translating text and documents, the following may only be used as source languages:
-//! - `EN`
-//! - `PT`
-//!
-//! and the following may only be used as target languages (representing regional variants):
-//! - `ENUS`
-//! - `ENGB`
-//! - `PTBR`
-//! - `PTPT`
+//! lang
+
 use super::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
-/// DeepL language type.
-/// Note: this is currently only used when fetching language meta info
+/// Language type. Note: this is currently only used when fetching language meta information.
 #[derive(Copy, Clone, Debug)]
 pub enum LanguageType {
     /// Source language
@@ -52,7 +25,34 @@ pub struct LanguageInfo {
     pub supports_formality: Option<bool>,
 }
 
+impl Default for LanguageInfo {
+    /// Provides serde with a default value for `supports_formality`, since
+    /// the field is only returned for target lang (not source).
+    /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
+    //
+    // note: can we just derive Default?
+    fn default() -> Self {
+        Self {
+            language: String::default(),
+            name: String::default(),
+            supports_formality: None,
+        }
+    }
+}
+
 /// Language variants.
+///
+/// Please note that while many [`Language`] variants are interchangeable as both source and
+/// target languages, there are exceptions. For example when translating text and documents,
+/// the following may only be used as source languages:
+/// - `EN`
+/// - `PT`
+///
+/// and the following may only be used as target languages (representing regional variants):
+/// - `ENUS`
+/// - `ENGB`
+/// - `PTBR`
+/// - `PTPT`
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Language {
     /// Bulgarian
@@ -217,23 +217,23 @@ impl fmt::Display for Language {
     }
 }
 
-impl Default for LanguageInfo {
-    /// Provides serde with a default value for `supports_formality`, since
-    /// the field is only returned for target lang (not source).
-    /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
-    fn default() -> Self {
-        Self {
-            language: String::default(),
-            name: String::default(),
-            supports_formality: None,
-        }
-    }
-}
-
 impl DeepL {
     /// GET /languages
     ///
-    /// Get information on supported languages
+    /// Get information on supported languages.
+    ///
+    /// ## Example
+    ///
+    /// ```rust,no_run
+    /// # use deeprl::{DeepL, LanguageType};
+    /// # let dl = DeepL::new(&std::env::var("DEEPL_API_KEY").unwrap());
+    /// let source_langs = dl.languages(LanguageType::Source).unwrap();
+    /// assert!(!source_langs.is_empty());
+    ///
+    /// let language = &source_langs[0];
+    /// println!("{}", language.language); // BG
+    /// println!("{}", language.name); // Bulgarian
+    ///```
     pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>> {
         let url = format!("{}/languages", self.url);
 

@@ -1,60 +1,4 @@
-//! # Manage glossaries
-//!
-//! [`DeepL`] supports creating custom glossaries, i.e. a collection of entries which when used in a translation
-//! ensures that a given word from the source language always maps to the same target word provided by the glossary,
-//! giving a user more control in cases where translation might otherwise be unreliable or ambiguous. A given glossary
-//! is defined by one source language and one target language where the source word in each entry is unique.
-//!
-//! ## Example
-//! In the below example, we've created a csv file called `glossary.csv` with two entries:
-//! ```
-//! hello, ciao
-//! goodbye, ciao
-//! ```
-//! ```
-//! use deeprl::*;
-//! use std::{env, fs};
-//!
-//! let dl = DeepL::new(
-//!     &env::var("DEEPL_API_KEY").unwrap()
-//! );
-//!
-//! // Create a new glossary
-//! let name = "my_glossary".to_string();
-//! let source_lang = Language::EN;
-//! let target_lang = Language::IT;
-//! let entries = fs::read_to_string("glossary.csv").unwrap();
-//! let fmt = GlossaryEntriesFormat::Csv;
-//!
-//! let glossary = dl.glossary_new(
-//!     name,
-//!     source_lang,
-//!     target_lang,
-//!     entries,
-//!     fmt
-//! )
-//! .unwrap();
-//!
-//! let glos_id = glossary.glossary_id; // save this!
-//!     
-//! // Use glossary for translation
-//! let text = vec![
-//!     "hello".to_string(),
-//!     "goodbye".to_string(),
-//! ];
-//! let opt = TextOptions::new(target_lang)
-//!     .source_lang(source_lang)
-//!     .glossary_id(glos_id.clone());
-//!
-//! let result = dl.translate(opt, text).unwrap();
-//! let hello = &result.translations[0].text;
-//! let goodbye = &result.translations[1].text;
-//! assert_eq!(hello, "ciao");
-//! assert_eq!(goodbye, "ciao");
-//!
-//! // Delete a glossary
-//! dl.glossary_delete(&glos_id);
-//! ```
+//! glos
 
 use reqwest::header;
 use serde::{Deserialize, Serialize};
@@ -93,7 +37,9 @@ pub enum GlossaryEntriesFormat {
 pub struct Glossary {
     /// A unique ID assigned to a glossary
     pub glossary_id: String,
-    /// Indicates if the newly created glossary can already be used in translate requests. If the created glossary is not yet ready, you have to wait and check the ready status of the glossary before using it in a translate request.
+    /// Indicates if the newly created glossary can already be used in translate requests.
+    /// If the created glossary is not yet ready, you have to wait and check the ready status
+    /// of the glossary before using it in a translate request.
     pub ready: bool,
     /// Name associated with the glossary
     pub name: String,
@@ -147,7 +93,35 @@ impl DeepL {
 
     /// POST /glossaries
     ///
-    /// Create a new glossary
+    /// Create a new glossary.
+    ///
+    /// [`DeepL`] supports creating custom glossaries, i.e. a collection of entries which when
+    /// used in a translation ensures that a given word from the source language always maps to
+    /// the same target word in the glossary, giving a user more control in cases where
+    /// translation might otherwise be unreliable or ambiguous. A given glossary is defined by one
+    /// source language and one target language where the source word in each entry is unique.
+    ///
+    /// ## Example
+    ///
+    /// ```rust,no_run
+    /// # use deeprl::*;
+    /// # let dl = DeepL::new(&std::env::var("DEEPL_API_KEY").unwrap());
+    /// let name = "my_glossary".to_string();
+    /// let source_lang = Language::EN;
+    /// let target_lang = Language::IT;
+    /// let entries = "hello,ciao".to_string();
+    /// let fmt = GlossaryEntriesFormat::Csv;
+    ///
+    /// let glossary = dl.glossary_new(
+    ///     name,
+    ///     source_lang,
+    ///     target_lang,
+    ///     entries,
+    ///     fmt
+    /// )
+    /// .unwrap();
+    /// assert!(!glossary.glossary_id.is_empty());
+    /// ```
     pub fn glossary_new(
         &self,
         name: String,

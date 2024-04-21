@@ -169,15 +169,12 @@ fn document() {
     assert!(!doc.document_id.is_empty());
 
     // test status
-    thread::sleep(Duration::from_secs(3));
-    let mut doc_status = dl.document_status(&doc).unwrap();
-
-    while !doc_status.is_done() {
+    let mut delay = Duration::from_millis(64);
+    while !dl.document_status(&doc).unwrap().is_done() {
         // try again after 3 sec
-        thread::sleep(Duration::from_secs(3));
-        doc_status = dl.document_status(&doc).unwrap();
+        thread::sleep(delay);
+        delay *= 2;
     }
-    assert!(doc_status.is_done());
 
     // test download
     let out_file = PathBuf::from("de.txt");
@@ -238,6 +235,7 @@ fn glossary_all() {
 
     let glossary = dl.glossary_new(name, src, trg, entries, fmt).unwrap();
     assert_eq!(glossary.entry_count, 2);
+    // TODO: `assert!(glossary.ready);` before attempting to use it
 
     // test fetch entries
     let glos_id = glossary.glossary_id;
@@ -262,10 +260,11 @@ fn glossary_all() {
     thread::sleep(Duration::from_secs(1));
 
     // deleted glossary id is 404
-    let code = StatusCode::NOT_FOUND;
-    let expect = Error::Client(code.to_string());
     let resp = dl.glossary_info(&glos_id);
-    assert_eq!(resp.unwrap_err(), expect);
+    assert!(matches!(
+        resp,
+        Err(Error::Server(code, ..)) if code == StatusCode::NOT_FOUND,
+    ));
 }
 
 #[test]

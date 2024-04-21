@@ -50,6 +50,9 @@
 //!
 //! # License
 //! This project is licenced under MIT license.
+
+#![warn(missing_docs)]
+
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 use thiserror::Error;
@@ -136,7 +139,7 @@ macro_rules! builder {
         use paste::paste;
 
         paste! {
-            #[doc = "Builder type for `" [<$name Options>] "`"]
+            #[doc = "Options for `" [<$name>] "` translation"]
             pub struct [<$name Options>] {
                 $($must_field: $must_type,)+
                 $($opt_field: Option<$opt_type>,)+
@@ -144,6 +147,7 @@ macro_rules! builder {
 
             impl [<$name Options>] {
                 #[must_use]
+                #[doc = "Construct a new `" [<$name Options>] "`"]
                 pub fn new($($must_field: $must_type,)+) -> Self {
                     Self {
                         $($must_field,)+
