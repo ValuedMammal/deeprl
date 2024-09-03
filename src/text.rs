@@ -6,7 +6,7 @@ use super::{Error, Result};
 use crate::{builder, DeepL, Language};
 
 /// Sets whether the translation engine should first split the input into sentences
-#[derive(Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize)]
 pub enum SplitSentences {
     /// No splitting
     #[serde(rename = "0")]
@@ -20,7 +20,7 @@ pub enum SplitSentences {
 }
 
 /// Sets whether the translation engine should lean towards formal or informal language
-#[derive(Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Formality {
     /// Default formality
@@ -49,7 +49,7 @@ impl fmt::Display for Formality {
 }
 
 /// Sets which kind of tags should be handled
-#[derive(Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TagHandling {
     /// Enable XML tag handling

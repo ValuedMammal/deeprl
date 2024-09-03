@@ -147,7 +147,7 @@ macro_rules! builder {
 
         paste! {
             #[doc = "Options for `" [<$name>] "` translation"]
-            #[derive(serde::Serialize)]
+            #[derive(Debug, Clone, serde::Serialize)]
             pub struct [<$name Options>] {
                 $($must_field: $must_type,)+
                 $($opt_field: Option<$opt_type>,)+

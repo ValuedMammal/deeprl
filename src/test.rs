@@ -84,15 +84,31 @@ fn translate_text() {
     let dl = DeepL::new(KEY);
 
     let src = Language::En;
-
     let text = vec!["good morning".to_string()];
     let opt = TextOptions::new(Language::De).source_lang(src).text(text);
 
-    let resp = dl.translate(opt);
-    assert!(resp.is_ok());
-    let result = resp.unwrap();
-    let translation = &result.translations[0];
+    let res = dl.translate(opt).unwrap();
+    let translation = &res.translations[0];
     assert!(!translation.text.is_empty());
+}
+
+#[test]
+fn translate_error_empty_text() {
+    let dl = DeepL::new(KEY);
+
+    let cases: Vec<Option<Vec<String>>> = vec![None, Some(vec![]), Some(vec!["".to_string()])];
+    for text in cases {
+        let mut opt = TextOptions::new(Language::De);
+        if let Some(text) = text {
+            opt = opt.text(text);
+        }
+        let res = dl.translate(opt);
+        assert!(matches!(
+            res,
+            Err(Error::Client(s))
+            if s.contains("empty")
+        ));
+    }
 }
 
 #[test]
