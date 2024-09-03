@@ -15,13 +15,13 @@ let key = std::env::var("DEEPL_API_KEY").unwrap();
 let dl = DeepL::new(&key);
 
 // Translate 'good morning' to German
-let opt = TextOptions::new(Language::DE);
-
 let text = vec![
     "good morning".to_string(),
 ];
 
-let result = dl.translate(opt, text).unwrap();
+let opt = TextOptions::new(Language::De).text(text);
+
+let result = dl.translate(opt).unwrap();
 assert!(!result.translations.is_empty());
 
 let translation = &result.translations[0];
@@ -136,9 +136,9 @@ The following are translation options related to tag handling
     - `TagHandling::Xml`
     - `TagHandling::Html`
 - `outline_detection`: Whether the translator should automatically detect the outline (default `true`)
-- `splitting_tags`: A comma-separated list of tags that are used to split sentences, e.g. "head,title,body" `String`
-- `non_splitting_tags`: A comma-separated list of tags which do not split sentences, `String`
-- `ignore_tags`: A comma-separated list of tags not to translate, `String`
+- `splitting_tags`: List of tags used to split sentences, `Vec<String>`
+- `non_splitting_tags`: List of tags which do not split sentences, `Vec<String>`
+- `ignore_tags`: List of tags not to translate, `Vec<String>`
 
 Below is a more complex translation where we want to specify a source language, ignore newlines in the input, preserve formatting, and set a desired formality. We'll also use a custom glossary, ensuring the given glossary matches both the source and target language of this translation.
 
@@ -149,11 +149,12 @@ The function `translate` expects two arguments: a `TextOptions` object, and a `V
 let text = vec![
     "you are nice".to_string(),
 ];
-let opt = TextOptions::new(Language::FR) // note `new` expects the required target lang
-    .source_lang(Language::EN)
+let opt = TextOptions::new(Language::Fr) // note `new` expects the required target lang
+    .source_lang(Language::En)
     .formality(Formality::PreferLess)
+    .text(text);
 
-let result = dl.translate(opt, text).unwrap();
+let result = dl.translate(opt).unwrap();
 
 let translation = &result.translations[0];
 println!("{}", translation.text);
@@ -178,17 +179,18 @@ let xml = r"
     .to_string();
 
 let text = vec![xml];
-let split = "p".to_string(); // split on <p> tags
-let ignore = "title".to_string(); // ignore <title> tags
+let split = vec!["p".to_string()]; // split on <p> tags
+let ignore = vec!["title".to_string()]; // ignore <title> tags
 
-let opt = TextOptions::new(Language::FR)
-    .source_lang(Language::EN)
+let opt = TextOptions::new(Language::Fr)
+    .source_lang(Language::En)
     .tag_handling(TagHandling::Xml)
     .outline_detection(false)
     .splitting_tags(split)
-    .ignore_tags(ignore);
+    .ignore_tags(ignore)
+    .text(text);
 
-let result = dl.translate(opt, text).unwrap();
+let result = dl.translate(opt).unwrap();
 
 let text = &result.translations[0].text;
 assert!(text.contains("My English title"));
@@ -214,7 +216,7 @@ First, we create an instance of `DocumentOptions` which requires we know the tar
 
 ```rust
 // Upload a file in the current directory called 'test.txt'
-let target_lang = Language::DE;
+let target_lang = Language::De;
 let file_path = std::path::PathBuf::from("test.txt");
 let opt = DocumentOptions::new(target_lang, file_path);
 
@@ -305,8 +307,8 @@ Back in rust, we'll read the contents of the file to a string called `entries` a
 ```rust
 // Create a new glossary
 let name = "my_glossary".to_string();
-let src = Language::EN;
-let trg = Language::IT;
+let src = Language::En;
+let trg = Language::It;
 let entries = std::fs::read_to_string("my_glossary.csv").unwrap();
 let fmt = GlossaryEntriesFormat::Csv;
 
