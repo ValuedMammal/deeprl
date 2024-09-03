@@ -262,7 +262,7 @@ impl DeepL {
 }
 
 /// Attempt to parse an error in case of unsuccessful request
-fn convert<T>(resp: reqwest::blocking::Response) -> Result<T> {
+fn convert_error<T>(resp: reqwest::blocking::Response) -> Result<T> {
     let code = resp.status();
     let resp: ServerError = resp.json().map_err(|_| Error::InvalidResponse)?;
     Err(Error::Server(code, resp.message))

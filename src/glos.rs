@@ -84,7 +84,7 @@ impl DeepL {
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -146,7 +146,7 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -161,7 +161,7 @@ impl DeepL {
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -176,7 +176,7 @@ impl DeepL {
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -197,7 +197,7 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         let t = resp.text().map_err(|_| Error::InvalidResponse).unwrap();

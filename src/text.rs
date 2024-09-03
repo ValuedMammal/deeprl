@@ -1,3 +1,4 @@
+use core::fmt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -34,15 +35,16 @@ pub enum Formality {
     PreferLess,
 }
 
-impl AsRef<str> for Formality {
-    fn as_ref(&self) -> &str {
-        match self {
+impl fmt::Display for Formality {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
             Self::Default => "default",
             Self::More => "more",
             Self::Less => "less",
             Self::PreferMore => "prefer_more",
             Self::PreferLess => "prefer_less",
-        }
+        };
+        s.fmt(f)
     }
 }
 
@@ -156,7 +158,7 @@ impl DeepL {
         let resp = self.post(url).json(&obj).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)

@@ -83,8 +83,8 @@ impl DocumentOptions {
         if let Some(name) = self.filename {
             form = form.text("filename", name);
         }
-        if let Some(fm) = self.formality {
-            form = form.text("formality", fm.as_ref().to_string());
+        if let Some(formality) = self.formality {
+            form = form.text("formality", formality.to_string());
         }
         if let Some(glos) = self.glossary_id {
             form = form.text("glossary_id", glos);
@@ -139,7 +139,7 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -164,7 +164,7 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -189,7 +189,7 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert(resp);
+            return super::convert_error(resp);
         }
 
         // write out file
