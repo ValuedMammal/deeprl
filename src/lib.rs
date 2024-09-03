@@ -16,7 +16,7 @@
 //! let dl = DeepL::new(&key);
 //!
 //! // Translate 'good morning' to German
-//! let opt = TextOptions::new(Language::DE);
+//! let opt = TextOptions::new(Language::De);
 //!
 //! let text = vec![
 //!     "good morning".to_string(),
@@ -147,6 +147,7 @@ macro_rules! builder {
 
         paste! {
             #[doc = "Options for `" [<$name>] "` translation"]
+            #[derive(serde::Serialize)]
             pub struct [<$name Options>] {
                 $($must_field: $must_type,)+
                 $($opt_field: Option<$opt_type>,)+

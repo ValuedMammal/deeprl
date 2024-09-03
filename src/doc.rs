@@ -113,7 +113,7 @@ impl DeepL {
     /// # let dl = DeepL::new(&env::var("DEEPL_API_KEY").unwrap());
     /// # use std::time::Duration;
     /// let file_path = PathBuf::from("test.txt");
-    /// let target_lang = Language::DE;
+    /// let target_lang = Language::De;
     /// let opt = DocumentOptions::new(target_lang, file_path);
     /// let doc = dl.document_upload(opt).unwrap();
     ///

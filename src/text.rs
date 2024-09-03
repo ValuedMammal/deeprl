@@ -1,21 +1,26 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use super::{Error, Result};
 use crate::{builder, DeepL, Language};
 
 /// Sets whether the translation engine should first split the input into sentences
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize)]
 pub enum SplitSentences {
     /// No splitting
+    #[serde(rename = "0")]
     None,
     /// By default, split on punctuation and newlines
+    #[serde(rename = "1")]
     Default,
     /// Split on punctuation only
+    #[serde(rename = "lowercase")]
     NoNewlines,
 }
 
 /// Sets whether the translation engine should lean towards formal or informal language
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Formality {
     /// Default formality
     Default,
@@ -29,8 +34,21 @@ pub enum Formality {
     PreferLess,
 }
 
+impl AsRef<str> for Formality {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Default => "default",
+            Self::More => "more",
+            Self::Less => "less",
+            Self::PreferMore => "prefer_more",
+            Self::PreferLess => "prefer_less",
+        }
+    }
+}
+
 /// Sets which kind of tags should be handled
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum TagHandling {
     /// Enable XML tag handling
     Xml,
@@ -54,53 +72,6 @@ pub struct TranslateTextResult {
     pub translations: Vec<Translation>,
 }
 
-impl AsRef<str> for SplitSentences {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::None => "0",
-            Self::Default => "1",
-            Self::NoNewlines => "nonewlines",
-        }
-    }
-}
-
-impl AsRef<str> for Formality {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Default => "default",
-            Self::More => "more",
-            Self::Less => "less",
-            Self::PreferMore => "prefer_more",
-            Self::PreferLess => "prefer_less",
-        }
-    }
-}
-
-impl std::str::FromStr for Formality {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let fm = match s {
-            "more" => Self::More,
-            "less" => Self::Less,
-            "prefer_more" => Self::PreferMore,
-            "prefer_less" => Self::PreferLess,
-            _ => Self::Default,
-        };
-
-        Ok(fm)
-    }
-}
-
-impl AsRef<str> for TagHandling {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Xml => "xml",
-            Self::Html => "html",
-        }
-    }
-}
-
 // TextOptions builder
 builder! {
     Text {
@@ -114,57 +85,11 @@ builder! {
             formality: Formality,
             glossary_id: String,
             tag_handling: TagHandling,
-            non_splitting_tags: String,
+            non_splitting_tags: Vec<String>,
             outline_detection: bool,
-            splitting_tags: String,
-            ignore_tags: String,
+            splitting_tags: Vec<String>,
+            ignore_tags: Vec<String>,
         };
-    }
-}
-
-impl TextOptions {
-    /// Creates a map of request params from an instance of `TextOptions`
-    fn into_form(self) -> Vec<(&'static str, String)> {
-        let mut form = vec![];
-
-        form.push(("target_lang", self.target_lang.to_string()));
-
-        if let Some(src) = self.source_lang {
-            form.push(("source_lang", src.as_ref().to_string()));
-        }
-        if let Some(ss) = self.split_sentences {
-            form.push(("split_sentences", ss.as_ref().to_string()));
-        }
-        if let Some(pf) = self.preserve_formatting {
-            if pf {
-                form.push(("preserve_formatting", "1".to_string()));
-            }
-        }
-        if let Some(fm) = self.formality {
-            form.push(("formality", fm.as_ref().to_string()));
-        }
-        if let Some(g) = self.glossary_id {
-            form.push(("glossary_id", g));
-        }
-        if let Some(th) = self.tag_handling {
-            form.push(("tag_handling", th.as_ref().to_string()));
-        }
-        if let Some(non) = self.non_splitting_tags {
-            form.push(("non_splitting_tags", non));
-        }
-        if let Some(od) = self.outline_detection {
-            if !od {
-                form.push(("outline_detection", "0".to_string()));
-            }
-        }
-        if let Some(sp) = self.splitting_tags {
-            form.push(("splitting_tags", sp));
-        }
-        if let Some(ig) = self.ignore_tags {
-            form.push(("ignore_tags", ig));
-        }
-
-        form
     }
 }
 
@@ -186,7 +111,7 @@ impl DeepL {
     /// # let dl = DeepL::new(&std::env::var("DEEPL_API_KEY").unwrap());
     /// let text = vec!["good morning"];
     /// let res = dl.translate(
-    ///     TextOptions::new(Language::ES),
+    ///     TextOptions::new(Language::Es),
     ///     vec!["good morning".to_string()],
     /// )
     /// .unwrap();
@@ -204,7 +129,7 @@ impl DeepL {
     /// <p>To be or not to be, that is the question.</p>"#;
     ///
     /// let text = vec![raw_html.to_string()];
-    /// let opt = TextOptions::new(Language::ES)
+    /// let opt = TextOptions::new(Language::Es)
     ///     .tag_handling(TagHandling::Html)
     ///     .outline_detection(false);
     ///
@@ -219,17 +144,16 @@ impl DeepL {
             return Err(Error::Client("empty text parameter".to_string()));
         }
         let url = format!("{}/translate", self.url);
-        let mut params = opt.into_form();
+        // TODO: consider make `text: Vec<String>` a member of `TextOptions` instead of
+        // passing it here
+        let value = json!(opt);
+        let serde_json::Value::Object(mut map) = value else {
+            panic!("TextOptions to json value");
+        };
+        map.insert("text".to_string(), json!(text));
+        let obj = json!(map);
 
-        for t in text {
-            params.push(("text", t));
-        }
-
-        let resp = self
-            .post(url)
-            .form(&params)
-            .send()
-            .map_err(Error::Reqwest)?;
+        let resp = self.post(url).json(&obj).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
             return super::convert(resp);

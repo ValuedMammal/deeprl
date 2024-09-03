@@ -106,8 +106,8 @@ impl DeepL {
     /// # use deeprl::*;
     /// # let dl = DeepL::new(&std::env::var("DEEPL_API_KEY").unwrap());
     /// let name = "my_glossary".to_string();
-    /// let source_lang = Language::EN;
-    /// let target_lang = Language::IT;
+    /// let source_lang = Language::En;
+    /// let target_lang = Language::It;
     /// let entries = "hello,ciao".to_string();
     /// let fmt = GlossaryEntriesFormat::Csv;
     ///

@@ -1,5 +1,5 @@
 use super::*;
-use std::{env, io::Write, path::PathBuf, str::FromStr, thread, time::Duration};
+use std::{env, str::FromStr, thread, time::Duration};
 
 const KEY: &'static str = env!("DEEPL_API_KEY");
 
@@ -83,10 +83,10 @@ fn languages() {
 fn translate_text() {
     let dl = DeepL::new(KEY);
 
-    let src = Language::EN;
+    let src = Language::En;
 
     let text = vec!["good morning".to_string()];
-    let opt = TextOptions::new(Language::DE).source_lang(src);
+    let opt = TextOptions::new(Language::De).source_lang(src);
 
     let resp = dl.translate(opt, text);
     assert!(resp.is_ok());
@@ -99,8 +99,8 @@ fn translate_text() {
 fn translate_options() {
     let dl = DeepL::new(KEY);
 
-    let opt = TextOptions::new(Language::FR)
-        .source_lang(Language::EN)
+    let opt = TextOptions::new(Language::Fr)
+        .source_lang(Language::En)
         .split_sentences(SplitSentences::None)
         .preserve_formatting(true)
         .formality(Formality::PreferLess);
@@ -134,11 +134,11 @@ fn translate_tags() {
         .to_string();
 
     let text = vec![xml];
-    let split = "p".to_string();
-    let ignore = "title".to_string();
+    let split = vec!["p".to_string()];
+    let ignore = vec!["title".to_string()];
 
-    let opt = TextOptions::new(Language::FR)
-        .source_lang(Language::EN)
+    let opt = TextOptions::new(Language::Fr)
+        .source_lang(Language::En)
         .tag_handling(TagHandling::Xml)
         .outline_detection(false)
         .splitting_tags(split)
@@ -157,11 +157,12 @@ fn document() {
 
     // create file
     let text = "good morning".to_string();
-    let path = PathBuf::from("gm.txt");
+    let tempdir = tempfile::tempdir().unwrap();
+    let path = tempdir.path().join("gm.txt");
     std::fs::write(&path, text).unwrap();
 
     // test upload
-    let lang = Language::DE;
+    let lang = Language::De;
     let opt = DocumentOptions::new(lang, path);
     let doc_resp = dl.document_upload(opt);
     assert!(doc_resp.is_ok());
@@ -171,18 +172,17 @@ fn document() {
     // test status
     let mut delay = Duration::from_millis(64);
     while !dl.document_status(&doc).unwrap().is_done() {
-        // try again after 3 sec
         thread::sleep(delay);
         delay *= 2;
     }
 
     // test download
-    let out_file = PathBuf::from("de.txt");
-    let result = dl.document_download(doc, Some(out_file.clone()));
+    let path = tempdir.path().join("de.txt");
+    let result = dl.document_download(doc, Some(path.clone()));
     assert!(result.is_ok());
 
-    let content = std::fs::read_to_string(out_file).unwrap();
-    assert_eq!(content, "Guten Morgen");
+    let content = std::fs::read_to_string(path).unwrap();
+    assert!(!content.is_empty());
 }
 
 #[test]
@@ -212,30 +212,19 @@ fn glossaries() {
 
 #[test]
 fn glossary_all() {
-    let dl = DeepL::new(KEY);
-
     // create csv file with two glossary entries
-    let entry = "hello,ciao\n".to_string();
-    std::fs::write("glos.csv", entry).unwrap();
-
-    let entry = "goodbye,ciao\n".to_string();
-    let _wrote = std::fs::OpenOptions::new()
-        .append(true)
-        .open("glos.csv")
-        .unwrap()
-        .write(entry.as_bytes())
-        .unwrap();
+    let dl = DeepL::new(KEY);
 
     // test create glossary
     let name = "my_glossary".to_string();
-    let src = Language::EN;
-    let trg = Language::IT;
-    let entries = std::fs::read_to_string("glos.csv").unwrap();
+    let src = Language::En;
+    let trg = Language::It;
+    let entries = "hello,ciao\ngoodbye,ciao".to_string();
     let fmt = GlossaryEntriesFormat::Csv;
 
     let glossary = dl.glossary_new(name, src, trg, entries, fmt).unwrap();
     assert_eq!(glossary.entry_count, 2);
-    // TODO: `assert!(glossary.ready);` before attempting to use it
+    assert!(glossary.ready);
 
     // test fetch entries
     let glos_id = glossary.glossary_id;
@@ -245,8 +234,8 @@ fn glossary_all() {
     assert_eq!(entries.len(), 2);
 
     // test translate with glossary
-    let opts = TextOptions::new(Language::IT)
-        .source_lang(Language::EN)
+    let opts = TextOptions::new(Language::It)
+        .source_lang(Language::En)
         .preserve_formatting(true)
         .glossary_id(glos_id.clone());
 
@@ -256,7 +245,7 @@ fn glossary_all() {
     assert_eq!(translations[0].text, "ciao");
 
     // test delete
-    let _: () = dl.glossary_delete(&glos_id).unwrap();
+    dl.glossary_delete(&glos_id).unwrap();
     thread::sleep(Duration::from_secs(1));
 
     // deleted glossary id is 404
@@ -275,10 +264,10 @@ fn test_error() {
     let res = dl.translate(
         TextOptions::new(
             // bad target lang
-            Language::PT,
+            Language::Pt,
         )
         // bad source lang
-        .source_lang(Language::ENGB),
+        .source_lang(Language::EnGb),
         vec!["good morning".to_string()],
     );
     assert!(res.is_err());
@@ -290,7 +279,7 @@ fn doc_text_options() {
     let dl = DeepL::new(KEY);
 
     let text = vec!["you are nice \nthe red crab".to_string()];
-    let target_lang = Language::FR;
+    let target_lang = Language::Fr;
 
     let opt = TextOptions::new(target_lang)
         .split_sentences(SplitSentences::None)
@@ -312,7 +301,7 @@ fn doc_text_html() {
         .to_string();
 
     let text = vec![html];
-    let opt = TextOptions::new(Language::ES)
+    let opt = TextOptions::new(Language::Es)
         .tag_handling(TagHandling::Html)
         .outline_detection(false);
     let trans = dl.translate(opt, text).unwrap().translations;

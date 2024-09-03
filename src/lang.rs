@@ -54,74 +54,77 @@ impl Default for LanguageInfo {
 /// - `ENGB`
 /// - `PTBR`
 /// - `PTPT`
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "SCREAMING-KEBAB-CASE")]
 pub enum Language {
     /// Bulgarian
-    BG,
+    Bg,
     /// Czech
-    CS,
+    Cs,
     /// Danish
-    DA,
+    Da,
     /// German
-    DE,
+    De,
     /// Greek
-    EL,
+    El,
     /// English (source language)
-    EN,
+    En,
     /// English British (target language)
-    ENGB,
+    EnGb,
     /// English American (target language)
-    ENUS,
+    EnUs,
     /// Spanish
-    ES,
+    Es,
     /// Estonian
-    ET,
+    Et,
     /// Finish
-    FI,
+    Fi,
     /// French
-    FR,
+    Fr,
     /// Hungarian
-    HU,
+    Hu,
     /// Indonesian
-    ID,
+    Id,
     /// Italian
-    IT,
+    It,
     /// Japanese
-    JA,
+    Ja,
     /// Korean
-    KO,
+    Ko,
     /// Lithuanian
-    LT,
+    Lt,
     /// Latvian
-    LV,
+    Lv,
     /// Norwegian
-    NB,
+    Nb,
     /// Dutch
-    NL,
+    Nl,
     /// Polish
-    PL,
+    Pl,
     /// Portuguese (source language)
-    PT,
+    Pt,
     /// Portuguese Brazilian (target language)
-    PTBR,
+    PtBr,
     /// Portuguese European (target language)
-    PTPT,
+    PtPt,
     /// Romanian
-    RO,
+    Ro,
     /// Russian
-    RU,
+    Ru,
     /// Slovak
-    SK,
+    Sk,
     /// Slovenian
-    SL,
+    Sl,
     /// Swedish
-    SV,
+    Sv,
     /// Turkish
-    TR,
+    Tr,
     /// Ukranian
-    UK,
+    Uk,
     /// Chinese simplified
-    ZH,
+    Zh,
+    /// Chinese simplified
+    ZhHans,
 }
 
 impl FromStr for Language {
@@ -132,39 +135,40 @@ impl FromStr for Language {
     /// If a [`Language`] cannot be parsed from the input `s`
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lang = match s.to_uppercase().as_str() {
-            "BG" => Language::BG,
-            "CS" => Language::CS,
-            "DA" => Language::DA,
-            "DE" => Language::DE,
-            "EL" => Language::EL,
-            "EN" => Language::EN,
-            "EN-GB" => Language::ENGB,
-            "EN-US" => Language::ENUS,
-            "ES" => Language::ES,
-            "ET" => Language::ET,
-            "FI" => Language::FI,
-            "FR" => Language::FR,
-            "HU" => Language::HU,
-            "ID" => Language::ID,
-            "IT" => Language::IT,
-            "JA" => Language::JA,
-            "KO" => Language::KO,
-            "LT" => Language::LT,
-            "LV" => Language::LV,
-            "NB" => Language::NB,
-            "NL" => Language::NL,
-            "PL" => Language::PL,
-            "PT" => Language::PT,
-            "PT-BR" => Language::PTBR,
-            "PT-PT" => Language::PTPT,
-            "RO" => Language::RO,
-            "RU" => Language::RU,
-            "SK" => Language::SK,
-            "SL" => Language::SL,
-            "SV" => Language::SV,
-            "TR" => Language::TR,
-            "UK" => Language::UK,
-            "ZH" => Language::ZH,
+            "BG" => Language::Bg,
+            "CS" => Language::Cs,
+            "DA" => Language::Da,
+            "DE" => Language::De,
+            "EL" => Language::El,
+            "EN" => Language::En,
+            "EN-GB" => Language::EnGb,
+            "EN-US" => Language::EnUs,
+            "ES" => Language::Es,
+            "ET" => Language::Et,
+            "FI" => Language::Fi,
+            "FR" => Language::Fr,
+            "HU" => Language::Hu,
+            "ID" => Language::Id,
+            "IT" => Language::It,
+            "JA" => Language::Ja,
+            "KO" => Language::Ko,
+            "LT" => Language::Lt,
+            "LV" => Language::Lv,
+            "NB" => Language::Nb,
+            "NL" => Language::Nl,
+            "PL" => Language::Pl,
+            "PT" => Language::Pt,
+            "PT-BR" => Language::PtBr,
+            "PT-PT" => Language::PtPt,
+            "RO" => Language::Ro,
+            "RU" => Language::Ru,
+            "SK" => Language::Sk,
+            "SL" => Language::Sl,
+            "SV" => Language::Sv,
+            "TR" => Language::Tr,
+            "UK" => Language::Uk,
+            "ZH" => Language::Zh,
+            "ZH-HANS" => Language::ZhHans,
             _ => return Err(Error::InvalidLanguage),
         };
 
@@ -175,39 +179,40 @@ impl FromStr for Language {
 impl AsRef<str> for Language {
     fn as_ref(&self) -> &str {
         match self {
-            Self::BG => "BG",
-            Self::CS => "CS",
-            Self::DA => "DA",
-            Self::DE => "DE",
-            Self::EL => "EL",
-            Self::EN => "EN",
-            Self::ENGB => "EN-GB",
-            Self::ENUS => "EN-US",
-            Self::ES => "ES",
-            Self::ET => "ET",
-            Self::FI => "FI",
-            Self::FR => "FR",
-            Self::HU => "HU",
-            Self::ID => "ID",
-            Self::IT => "IT",
-            Self::JA => "JA",
-            Self::KO => "KO",
-            Self::LT => "LT",
-            Self::LV => "LV",
-            Self::NB => "NB",
-            Self::NL => "NL",
-            Self::PL => "PL",
-            Self::PT => "PT",
-            Self::PTBR => "PT-BR",
-            Self::PTPT => "PT-PT",
-            Self::RO => "RO",
-            Self::RU => "RU",
-            Self::SK => "SK",
-            Self::SL => "SL",
-            Self::SV => "SV",
-            Self::TR => "TR",
-            Self::UK => "UK",
-            Self::ZH => "ZH",
+            Self::Bg => "BG",
+            Self::Cs => "CS",
+            Self::Da => "DA",
+            Self::De => "DE",
+            Self::El => "EL",
+            Self::En => "EN",
+            Self::EnGb => "EN-GB",
+            Self::EnUs => "EN-US",
+            Self::Es => "ES",
+            Self::Et => "ET",
+            Self::Fi => "FI",
+            Self::Fr => "FR",
+            Self::Hu => "HU",
+            Self::Id => "ID",
+            Self::It => "IT",
+            Self::Ja => "JA",
+            Self::Ko => "KO",
+            Self::Lt => "LT",
+            Self::Lv => "LV",
+            Self::Nb => "NB",
+            Self::Nl => "NL",
+            Self::Pl => "PL",
+            Self::Pt => "PT",
+            Self::PtBr => "PT-BR",
+            Self::PtPt => "PT-PT",
+            Self::Ro => "RO",
+            Self::Ru => "RU",
+            Self::Sk => "SK",
+            Self::Sl => "SL",
+            Self::Sv => "SV",
+            Self::Tr => "TR",
+            Self::Uk => "UK",
+            Self::Zh => "ZH",
+            Self::ZhHans => "ZH-HANS",
         }
     }
 }
