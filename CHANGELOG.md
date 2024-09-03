@@ -6,6 +6,15 @@ All notable changes will be documented in this file. This project adheres to sem
 
 ### In progress
 
+## [0.4.0] - 2024-09-03
+### Changed
+- Derive `serde::Serialize` for types `Language`, `SplitSentences`, `Formality`, `TagHandling`
+- Derive `Debug`, `Clone` for types `TextOptions`, `DocumentOptions`
+- Simplify text form building by setting a json body
+- Renamed `Language` variants to respect case convention
+- Changed fields `non_splitting_tags`, `splitting_tags`, `ignore_tags` of `TextOptions` to have type `Vec<String>`.
+- Added method `text` to `TextOptions` for setting the text to translate. `DeepL::translate` function no longer takes a text parameter.
+
 ## [0.3.0] - 2024-04-21
 ### Changed
 - Renamed DeepL method `glossary_del` to `glossary_delete`.
