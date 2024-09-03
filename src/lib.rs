@@ -16,13 +16,13 @@
 //! let dl = DeepL::new(&key);
 //!
 //! // Translate 'good morning' to German
-//! let opt = TextOptions::new(Language::De);
-//!
 //! let text = vec![
 //!     "good morning".to_string(),
 //! ];
 //!
-//! let result = dl.translate(opt, text).unwrap();
+//! let opt = TextOptions::new(Language::De).text(text);
+//!
+//! let result = dl.translate(opt).unwrap();
 //! assert!(!result.translations.is_empty());
 //!
 //! let translation = &result.translations[0];

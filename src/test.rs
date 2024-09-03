@@ -86,9 +86,9 @@ fn translate_text() {
     let src = Language::En;
 
     let text = vec!["good morning".to_string()];
-    let opt = TextOptions::new(Language::De).source_lang(src);
+    let opt = TextOptions::new(Language::De).source_lang(src).text(text);
 
-    let resp = dl.translate(opt, text);
+    let resp = dl.translate(opt);
     assert!(resp.is_ok());
     let result = resp.unwrap();
     let translation = &result.translations[0];
@@ -99,19 +99,21 @@ fn translate_text() {
 fn translate_options() {
     let dl = DeepL::new(KEY);
 
+    let text = vec!["you\nare nice".to_string()];
+
     let opt = TextOptions::new(Language::Fr)
         .source_lang(Language::En)
         .split_sentences(SplitSentences::None)
         .preserve_formatting(true)
-        .formality(Formality::PreferLess);
+        .formality(Formality::PreferLess)
+        .text(text);
 
     // newline in the text string
     // lowercase, no punctuation
     // less formal
-    let text = vec!["you\nare nice".to_string()];
     let expect = "tu es gentille";
 
-    let resp = dl.translate(opt, text).unwrap();
+    let resp = dl.translate(opt).unwrap();
     let translation = &resp.translations[0];
 
     assert_eq!(translation.text, expect);
@@ -142,9 +144,10 @@ fn translate_tags() {
         .tag_handling(TagHandling::Xml)
         .outline_detection(false)
         .splitting_tags(split)
-        .ignore_tags(ignore);
+        .ignore_tags(ignore)
+        .text(text);
 
-    let resp = dl.translate(opt, text).unwrap();
+    let resp = dl.translate(opt).unwrap();
     let text = &resp.translations[0].text;
     assert!(text.contains("<title>My English title</title>"));
     assert!(text.contains("<p>Parlez-vous français ?</p>"));
@@ -234,13 +237,14 @@ fn glossary_all() {
     assert_eq!(entries.len(), 2);
 
     // test translate with glossary
+    let text = vec!["goodbye".to_string()];
     let opts = TextOptions::new(Language::It)
         .source_lang(Language::En)
         .preserve_formatting(true)
-        .glossary_id(glos_id.clone());
+        .glossary_id(glos_id.clone())
+        .text(text);
 
-    let text = vec!["goodbye".to_string()];
-    let result = dl.translate(opts, text).unwrap();
+    let result = dl.translate(opts).unwrap();
     let translations = result.translations;
     assert_eq!(translations[0].text, "ciao");
 
@@ -267,8 +271,8 @@ fn test_error() {
             Language::Pt,
         )
         // bad source lang
-        .source_lang(Language::EnGb),
-        vec!["good morning".to_string()],
+        .source_lang(Language::EnGb)
+        .text(vec!["good morning".to_string()]),
     );
     assert!(res.is_err());
 }
@@ -284,9 +288,10 @@ fn doc_text_options() {
     let opt = TextOptions::new(target_lang)
         .split_sentences(SplitSentences::None)
         .preserve_formatting(true)
-        .formality(Formality::PreferLess);
+        .formality(Formality::PreferLess)
+        .text(text);
 
-    let translations = dl.translate(opt, text).unwrap().translations;
+    let translations = dl.translate(opt).unwrap().translations;
 
     assert_eq!(&translations[0].text, "tu es gentil le crabe rouge");
 }
@@ -303,8 +308,9 @@ fn doc_text_html() {
     let text = vec![html];
     let opt = TextOptions::new(Language::Es)
         .tag_handling(TagHandling::Html)
-        .outline_detection(false);
-    let trans = dl.translate(opt, text).unwrap().translations;
+        .outline_detection(false)
+        .text(text);
+    let trans = dl.translate(opt).unwrap().translations;
 
     let text = &trans[0].text;
     // dbg!(text);

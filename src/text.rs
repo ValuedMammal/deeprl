@@ -91,6 +91,7 @@ builder! {
             outline_detection: bool,
             splitting_tags: Vec<String>,
             ignore_tags: Vec<String>,
+            text: Vec<String>,
         };
     }
 }
@@ -112,11 +113,9 @@ impl DeepL {
     /// # use deeprl::*;
     /// # let dl = DeepL::new(&std::env::var("DEEPL_API_KEY").unwrap());
     /// let text = vec!["good morning"];
-    /// let res = dl.translate(
-    ///     TextOptions::new(Language::Es),
-    ///     vec!["good morning".to_string()],
-    /// )
-    /// .unwrap();
+    /// let options = TextOptions::new(Language::Es)
+    ///     .text(vec!["good morning".to_string()]);
+    /// let res = dl.translate(options).unwrap();
     /// assert!(!res.translations.is_empty());
     /// ```
     ///
@@ -133,27 +132,27 @@ impl DeepL {
     /// let text = vec![raw_html.to_string()];
     /// let opt = TextOptions::new(Language::Es)
     ///     .tag_handling(TagHandling::Html)
-    ///     .outline_detection(false);
+    ///     .outline_detection(false)
+    ///     .text(text);
     ///
-    /// let res = dl.translate(opt, text).unwrap();
+    /// let res = dl.translate(opt).unwrap();
     /// assert!(!res.translations.is_empty());
     /// ```
     /// ## Errors
     ///
     /// If target language and (optionally provided) source language are an invalid pair.
-    pub fn translate(&self, opt: TextOptions, text: Vec<String>) -> Result<TranslateTextResult> {
-        if text.is_empty() || text[0].is_empty() {
-            return Err(Error::Client("empty text parameter".to_string()));
-        }
+    pub fn translate(&self, opt: TextOptions) -> Result<TranslateTextResult> {
         let url = format!("{}/translate", self.url);
-        // TODO: consider make `text: Vec<String>` a member of `TextOptions` instead of
-        // passing it here
-        let value = json!(opt);
-        let serde_json::Value::Object(mut map) = value else {
-            panic!("TextOptions to json value");
+
+        let obj = match opt.text.as_ref() {
+            None => return Err(Error::Client("text field must not be empty".to_string())),
+            Some(text) => {
+                if text.is_empty() || text.first().unwrap().is_empty() {
+                    return Err(Error::Client("text field must not be empty".to_string()));
+                }
+                json!(opt)
+            }
         };
-        map.insert("text".to_string(), json!(text));
-        let obj = json!(map);
 
         let resp = self.post(url).json(&obj).send().map_err(Error::Reqwest)?;
 
