@@ -6,6 +6,22 @@ All notable changes will be documented in this file. This project adheres to sem
 
 ### In progress
 
+## [0.5.0] - 2025-11-1
+
+### Fixed
+
+- Improved error parsing and handling when the HTTP response is not successful
+
+### Added
+
+- Support for more languages Arabic (AR), Spanish Latin America (ES-419), Chinese traditional (ZH-HANT)
+
+### Changed
+
+- Several crate `Error` variants are changed or renamed
+- deps: Removed `thiserror`
+- deps: Bump `reqwest` to 0.12.24
+
 ## [0.4.0] - 2024-09-03
 ### Changed
 - Derive `serde::Serialize` for types `Language`, `SplitSentences`, `Formality`, `TagHandling`
