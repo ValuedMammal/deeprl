@@ -3,8 +3,7 @@ use std::{collections::HashMap, fmt};
 
 use reqwest::header;
 
-use super::{Error, Result};
-use crate::{DeepL, Language};
+use crate::{DeepL, Error, Language};
 
 /// A glossary language pair
 #[derive(Debug, Deserialize, Serialize)]
@@ -78,7 +77,7 @@ impl DeepL {
     /// GET /glossary-language-pairs
     ///
     /// Get supported glossary language pairs
-    pub fn glossary_languages(&self) -> Result<GlossaryLanguagePairsResult> {
+    pub fn glossary_languages(&self) -> Result<GlossaryLanguagePairsResult, Error> {
         let url = format!("{}/glossary-language-pairs", self.url);
 
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
@@ -131,7 +130,7 @@ impl DeepL {
         target_lang: Language,
         entries: String,
         fmt: GlossaryEntriesFormat,
-    ) -> Result<Glossary> {
+    ) -> Result<Glossary, Error> {
         let url = format!("{}/glossaries", self.url);
 
         let params = HashMap::from([
@@ -161,7 +160,7 @@ impl DeepL {
     /// GET /glossaries
     ///
     /// List current active glossaries
-    pub fn glossaries(&self) -> Result<GlossariesResult> {
+    pub fn glossaries(&self) -> Result<GlossariesResult, Error> {
         let url = format!("{}/glossaries", self.url);
 
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
@@ -179,7 +178,7 @@ impl DeepL {
     /// GET /glossaries/`{glossary_id}`
     ///
     /// Get meta information for a specified glossary (excluding entries)
-    pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary> {
+    pub fn glossary_info(&self, glossary_id: &str) -> Result<Glossary, Error> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
@@ -198,7 +197,7 @@ impl DeepL {
     ///
     /// Retrieve entries for a specified glossary.
     // Currently supports receiving entries in TSV format.
-    pub fn glossary_entries(&self, glossary_id: &str) -> Result<HashMap<String, String>> {
+    pub fn glossary_entries(&self, glossary_id: &str) -> Result<HashMap<String, String>, Error> {
         let url = format!("{}/glossaries/{}/entries", self.url, glossary_id);
         let accept = header::HeaderValue::from_static("text/tab-separated-values");
 
@@ -237,7 +236,7 @@ impl DeepL {
     /// DELETE /glossaries/`{glossary_id}`
     ///
     /// Destroy a glossary
-    pub fn glossary_delete(&self, glossary_id: &str) -> Result<()> {
+    pub fn glossary_delete(&self, glossary_id: &str) -> Result<(), Error> {
         let url = format!("{}/glossaries/{}", self.url, glossary_id);
 
         let _ = self.delete(url).send().map_err(Error::Reqwest);

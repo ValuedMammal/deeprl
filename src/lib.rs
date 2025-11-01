@@ -87,9 +87,6 @@ pub struct DeepL {
     auth: String,
 }
 
-/// Crate Result type
-type Result<T, E = Error> = std::result::Result<T, E>;
-
 /// Crate error variants
 #[derive(Debug)]
 pub enum Error {
@@ -265,7 +262,7 @@ impl DeepL {
     /// GET /usage
     ///
     /// Get account usage
-    pub fn usage(&self) -> Result<Usage> {
+    pub fn usage(&self) -> Result<Usage, Error> {
         let url = format!("{}/usage", self.url);
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
         let usage: Usage = resp.json()?;

@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{Error, Result};
-use crate::DeepL;
+use crate::{DeepL, Error};
 
 /// Language type. Note: this is currently only used when fetching language meta information.
 #[derive(Copy, Clone, Debug)]
@@ -159,7 +158,7 @@ impl DeepL {
     /// println!("{}", language.language);
     /// println!("{}", language.name);
     ///```
-    pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>> {
+    pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>, Error> {
         let url = format!("{}/languages", self.url);
 
         let kind = match lang_type {

@@ -2,8 +2,7 @@ use core::fmt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::{Error, Result};
-use crate::{builder, DeepL, Language};
+use crate::{builder, DeepL, Error, Language};
 
 /// Sets whether the translation engine should first split the input into sentences
 #[derive(Debug, Copy, Clone, Serialize)]
@@ -141,7 +140,7 @@ impl DeepL {
     /// ## Errors
     ///
     /// If target language and (optionally provided) source language are an invalid pair.
-    pub fn translate(&self, opt: TextOptions) -> Result<TranslateTextResult> {
+    pub fn translate(&self, opt: TextOptions) -> Result<TranslateTextResult, Error> {
         let url = format!("{}/translate", self.url);
 
         let obj = match opt.text.as_ref() {

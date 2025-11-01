@@ -3,8 +3,7 @@ use std::path::PathBuf;
 
 use reqwest::blocking::multipart;
 
-use super::{Error, Result};
-use crate::{builder, DeepL, Formality, Language};
+use crate::{builder, DeepL, Error, Formality, Language};
 
 /// Document handle
 #[derive(Debug, Deserialize, Serialize)]
@@ -71,7 +70,7 @@ impl DocumentStatus {
 
 impl DocumentOptions {
     /// Creates a multipart request form from an instance of `DocumentOptions`
-    fn into_multipart(self) -> Result<multipart::Form> {
+    fn into_multipart(self) -> Result<multipart::Form, Error> {
         let mut form = multipart::Form::new()
             .file("file", self.file_path)
             .map_err(|_| Error::Api("failed to attach file".to_string()))?
@@ -127,7 +126,7 @@ impl DeepL {
     /// let content = fs::read_to_string(out_file).unwrap();
     /// assert!(!content.is_empty());
     /// ```
-    pub fn document_upload(&self, opt: DocumentOptions) -> Result<Document> {
+    pub fn document_upload(&self, opt: DocumentOptions) -> Result<Document, Error> {
         let url = format!("{}/document", self.url);
 
         let form = opt.into_multipart()?;
@@ -153,7 +152,7 @@ impl DeepL {
     /// Get document translation status. In case there's an issue with translation,
     /// [`DocumentStatus`] contains a field `error_message` that may provide context
     /// for the cause of the error.
-    pub fn document_status(&self, doc: &Document) -> Result<DocumentStatus> {
+    pub fn document_status(&self, doc: &Document) -> Result<DocumentStatus, Error> {
         let doc_id = doc.document_id.clone();
         let url = format!("{}/document/{}", self.url, doc_id);
 
@@ -182,7 +181,11 @@ impl DeepL {
     ///
     /// If no `out_file` is given, the returned file path will have the name of the
     /// [`Document`] id.
-    pub fn document_download(&self, doc: Document, out_file: Option<PathBuf>) -> Result<PathBuf> {
+    pub fn document_download(
+        &self,
+        doc: Document,
+        out_file: Option<PathBuf>,
+    ) -> Result<PathBuf, Error> {
         let doc_id = doc.document_id;
         let url = format!("{}/document/{}/result", self.url, doc_id);
 
