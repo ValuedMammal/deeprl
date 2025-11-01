@@ -90,7 +90,7 @@ impl DeepL {
             ));
         }
 
-        resp.json().map_err(|_| Error::Deserialize)
+        Ok(resp.json()?)
     }
 
     /// POST /glossaries
@@ -155,7 +155,7 @@ impl DeepL {
             ));
         }
 
-        resp.json().map_err(|_| Error::Deserialize)
+        Ok(resp.json()?)
     }
 
     /// GET /glossaries
@@ -173,7 +173,7 @@ impl DeepL {
             ));
         }
 
-        resp.json().map_err(|_| Error::Deserialize)
+        Ok(resp.json()?)
     }
 
     /// GET /glossaries/`{glossary_id}`
@@ -191,7 +191,7 @@ impl DeepL {
             ));
         }
 
-        resp.json().map_err(|_| Error::Deserialize)
+        Ok(resp.json()?)
     }
 
     /// GET /glossaries/`{glossary_id}`/entries
@@ -215,7 +215,7 @@ impl DeepL {
             ));
         }
 
-        let t = resp.text().map_err(|_| Error::InvalidResponse).unwrap();
+        let t = resp.text()?;
         // The response text contains newline-separated entries
         // where each entry contains two strings separated by a tab.
         // First we split entries on '\n', then for each entry, split words

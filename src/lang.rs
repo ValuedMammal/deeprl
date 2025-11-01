@@ -179,6 +179,6 @@ impl DeepL {
             ));
         }
 
-        resp.json().map_err(|_| Error::Deserialize)
+        Ok(resp.json()?)
     }
 }

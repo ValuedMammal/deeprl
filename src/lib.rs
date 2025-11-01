@@ -53,12 +53,12 @@
 
 #![warn(missing_docs)]
 
+use core::fmt;
 use serde::Deserialize;
 use std::io;
 
 use reqwest::header;
 use reqwest::StatusCode;
-use thiserror::Error;
 
 mod doc;
 mod glos;
@@ -91,29 +91,47 @@ pub struct DeepL {
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Crate error variants
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum Error {
-    /// General client side error
-    #[error("{0}")]
+    /// General API related error
     Api(String),
-    /// Error sent from the server
-    #[error("{0}: {1}")]
-    Response(StatusCode, String),
-    /// Error deserializing response
-    #[error("error deserializing response")]
-    Deserialize,
-    /// Invalid request
-    #[error("invalid request {0}")]
-    Reqwest(reqwest::Error),
-    /// Io
-    #[error("{0}")]
+    /// `std::io` error
     Io(io::Error),
     /// Invalid language
-    #[error("{0}")]
-    InvalidLanguage(#[from] ParseLanguageError),
+    InvalidLanguage(ParseLanguageError),
     /// Invalid response
-    #[error("invalid response")]
     InvalidResponse,
+    /// `reqwest` error
+    Reqwest(reqwest::Error),
+    /// Error sent in the response
+    Response(StatusCode, String),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Api(err) => write!(f, "{err}"),
+            Self::Io(err) => write!(f, "{err}"),
+            Self::InvalidLanguage(err) => write!(f, "{err}"),
+            Self::InvalidResponse => write!(f, "invalid response"),
+            Self::Reqwest(err) => write!(f, "{err}"),
+            Self::Response(status, err) => write!(f, "{status} {err}"),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
+
+impl From<ParseLanguageError> for Error {
+    fn from(err: ParseLanguageError) -> Self {
+        Self::InvalidLanguage(err)
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        Self::Reqwest(err)
+    }
 }
 
 /// API usage & account limits. Currently assumes an individual developer account.
@@ -250,7 +268,7 @@ impl DeepL {
     pub fn usage(&self) -> Result<Usage> {
         let url = format!("{}/usage", self.url);
         let resp = self.get(url).send().map_err(Error::Reqwest)?;
-        let usage: Usage = resp.json().map_err(|_| Error::Deserialize)?;
+        let usage: Usage = resp.json()?;
 
         Ok(usage)
     }
