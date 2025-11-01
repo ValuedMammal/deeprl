@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::str::FromStr;
 
 use super::{Error, Result};
 use crate::DeepL;
@@ -22,218 +20,115 @@ pub struct LanguageInfo {
     /// Name of the language in English
     pub name: String,
     /// Denotes formality support in case of target language
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub supports_formality: Option<bool>,
 }
 
-impl Default for LanguageInfo {
-    /// Provides serde with a default value for `supports_formality`, since
-    /// the field is only returned for target lang (not source).
-    /// [deepl-openapi docs](https://docs.rs/deepl-openapi/2.7.1/src/deepl_openapi/models/get_languages_200_response_inner.rs.html)
-    //
-    // note: can we just derive Default?
-    fn default() -> Self {
-        Self {
-            language: String::default(),
-            name: String::default(),
-            supports_formality: None,
+/// Generate all languages.
+macro_rules! impl_language {
+    ( $($lang:ident, $upper:literal, $name:literal,)* ) => {
+        /// Language variants.
+        ///
+        /// Please note that while many [`Language`] variants are interchangeable as both source and
+        /// target languages, there are exceptions. For example when translating text and documents,
+        /// the following may only be used as source languages:
+        /// - [`En`](Self::En)
+        /// - [`Pt`](Self::Pt)
+        ///
+        /// and the following may only be used as target languages (representing regional variants):
+        /// - [`EnUs`](Self::EnUs)
+        /// - [`EnGb`](Self::EnGb)
+        /// - [`PtBr`](Self::PtBr)
+        /// - [`PtPt`](Self::PtPt)
+        #[derive(Copy, Clone, Debug, PartialEq, serde::Serialize)]
+        #[serde(rename_all = "SCREAMING-KEBAB-CASE")]
+        pub enum Language {
+            $(
+                #[doc = $name]
+                $lang,
+            )*
+        }
+
+        impl core::str::FromStr for Language {
+            type Err = crate::Error;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s.to_uppercase().as_str() {
+                    $(
+                       $upper => Ok(Self::$lang),
+                    )*
+                    _ => Err(Error::InvalidLanguage),
+                }
+            }
+        }
+
+        #[allow(unused)]
+        impl Language {
+            /// Get this [`Language`] as a `&str`.
+            fn as_str(&self) -> &str {
+                match self {
+                    $(
+                        Self::$lang => $upper,
+                    )*
+                }
+            }
+        }
+
+        impl AsRef<str> for Language {
+            fn as_ref(&self) -> &str {
+                self.as_str()
+            }
+        }
+
+        impl core::fmt::Display for Language {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}", self.as_ref())
+            }
         }
     }
 }
 
-/// Language variants.
-///
-/// Please note that while many [`Language`] variants are interchangeable as both source and
-/// target languages, there are exceptions. For example when translating text and documents,
-/// the following may only be used as source languages:
-/// - `EN`
-/// - `PT`
-///
-/// and the following may only be used as target languages (representing regional variants):
-/// - `ENUS`
-/// - `ENGB`
-/// - `PTBR`
-/// - `PTPT`
-#[derive(Copy, Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "SCREAMING-KEBAB-CASE")]
-pub enum Language {
-    /// Arabic
-    Ar,
-    /// Bulgarian
-    Bg,
-    /// Czech
-    Cs,
-    /// Danish
-    Da,
-    /// German
-    De,
-    /// Greek
-    El,
-    /// English (source language)
-    En,
-    /// English British (target language)
-    EnGb,
-    /// English American (target language)
-    EnUs,
-    /// Spanish
-    Es,
-    /// Spanish (Latin America)
-    Es419,
-    /// Estonian
-    Et,
-    /// Finish
-    Fi,
-    /// French
-    Fr,
-    /// Hungarian
-    Hu,
-    /// Indonesian
-    Id,
-    /// Italian
-    It,
-    /// Japanese
-    Ja,
-    /// Korean
-    Ko,
-    /// Lithuanian
-    Lt,
-    /// Latvian
-    Lv,
-    /// Norwegian
-    Nb,
-    /// Dutch
-    Nl,
-    /// Polish
-    Pl,
-    /// Portuguese (source language)
-    Pt,
-    /// Portuguese Brazilian (target language)
-    PtBr,
-    /// Portuguese European (target language)
-    PtPt,
-    /// Romanian
-    Ro,
-    /// Russian
-    Ru,
-    /// Slovak
-    Sk,
-    /// Slovenian
-    Sl,
-    /// Swedish
-    Sv,
-    /// Turkish
-    Tr,
-    /// Ukranian
-    Uk,
-    /// Chinese simplified
-    Zh,
-    /// Chinese simplified
-    ZhHans,
-    /// Chinese traditional
-    ZhHant,
-}
-
-impl FromStr for Language {
-    type Err = Error;
-
-    /// # Errors
-    ///
-    /// If a [`Language`] cannot be parsed from the input `s`
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let lang = match s.to_uppercase().as_str() {
-            "AR" => Language::Ar,
-            "BG" => Language::Bg,
-            "CS" => Language::Cs,
-            "DA" => Language::Da,
-            "DE" => Language::De,
-            "EL" => Language::El,
-            "EN" => Language::En,
-            "EN-GB" => Language::EnGb,
-            "EN-US" => Language::EnUs,
-            "ES" => Language::Es,
-            "ES-419" => Language::Es419,
-            "ET" => Language::Et,
-            "FI" => Language::Fi,
-            "FR" => Language::Fr,
-            "HU" => Language::Hu,
-            "ID" => Language::Id,
-            "IT" => Language::It,
-            "JA" => Language::Ja,
-            "KO" => Language::Ko,
-            "LT" => Language::Lt,
-            "LV" => Language::Lv,
-            "NB" => Language::Nb,
-            "NL" => Language::Nl,
-            "PL" => Language::Pl,
-            "PT" => Language::Pt,
-            "PT-BR" => Language::PtBr,
-            "PT-PT" => Language::PtPt,
-            "RO" => Language::Ro,
-            "RU" => Language::Ru,
-            "SK" => Language::Sk,
-            "SL" => Language::Sl,
-            "SV" => Language::Sv,
-            "TR" => Language::Tr,
-            "UK" => Language::Uk,
-            "ZH" => Language::Zh,
-            "ZH-HANS" => Language::ZhHans,
-            "ZH-HANT" => Language::ZhHant,
-            _ => return Err(Error::InvalidLanguage),
-        };
-
-        Ok(lang)
-    }
-}
-
-impl AsRef<str> for Language {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Ar => "AR",
-            Self::Bg => "BG",
-            Self::Cs => "CS",
-            Self::Da => "DA",
-            Self::De => "DE",
-            Self::El => "EL",
-            Self::En => "EN",
-            Self::EnGb => "EN-GB",
-            Self::EnUs => "EN-US",
-            Self::Es => "ES",
-            Self::Es419 => "ES-419",
-            Self::Et => "ET",
-            Self::Fi => "FI",
-            Self::Fr => "FR",
-            Self::Hu => "HU",
-            Self::Id => "ID",
-            Self::It => "IT",
-            Self::Ja => "JA",
-            Self::Ko => "KO",
-            Self::Lt => "LT",
-            Self::Lv => "LV",
-            Self::Nb => "NB",
-            Self::Nl => "NL",
-            Self::Pl => "PL",
-            Self::Pt => "PT",
-            Self::PtBr => "PT-BR",
-            Self::PtPt => "PT-PT",
-            Self::Ro => "RO",
-            Self::Ru => "RU",
-            Self::Sk => "SK",
-            Self::Sl => "SL",
-            Self::Sv => "SV",
-            Self::Tr => "TR",
-            Self::Uk => "UK",
-            Self::Zh => "ZH",
-            Self::ZhHans => "ZH-HANS",
-            Self::ZhHant => "ZH-HANT",
-        }
-    }
-}
-
-impl fmt::Display for Language {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())
-    }
-}
+#[rustfmt::skip]
+impl_language!(
+    Ar, "AR", " Arabic",
+    Bg, "BG", " Bulgarian",
+    Cs, "CS", " Czech",
+    Da, "DA", " Danish",
+    De, "DE", " German",
+    El, "EL", " Greek",
+    En, "EN", " English",
+    EnGb, "EN-GB", " English Britain",
+    EnUs, "EN-US", " English US",
+    Es, "ES", " Spanish",
+    Es419, "ES-419", " Spanish Latin America",
+    Et, "ET", " Estonian",
+    Fi, "FI", " Finish",
+    Fr, "FR", " French",
+    Hu, "HU", " Hungarian",
+    Id, "ID", " Indonesian",
+    It, "IT", " Italian",
+    Ja, "JA", " Japanese",
+    Ko, "KO", " Korean",
+    Lt, "LT", " Lithuanian",
+    Lv, "LV", " Latvian",
+    Nb, "NB", " Norwegian",
+    Nl, "NL", " Dutch",
+    Pl, "PL", " Polish",
+    Pt, "PT", " Portuguese",
+    PtBr, "PT-BR", " Portuguese Brazil",
+    PtPt, "PT-PT", " Portuguese Europe",
+    Ro, "RO", " Romanian",
+    Ru, "RU", " Russian",
+    Sk, "SK", " Slovak",
+    Sl, "SL", " Slovenian",
+    Sv, "SV", " Swedish",
+    Tr, "TR", " Turkish",
+    Uk, "UK", " Ukranian",
+    Zh, "ZH", " Chinese",
+    ZhHans, "ZH-HANS", " Chinese simplified",
+    ZhHant, "ZH-HANT", " Chinese traditional",
+);
 
 impl DeepL {
     /// GET /languages
