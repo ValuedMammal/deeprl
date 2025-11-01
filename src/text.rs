@@ -145,10 +145,10 @@ impl DeepL {
         let url = format!("{}/translate", self.url);
 
         let obj = match opt.text.as_ref() {
-            None => return Err(Error::Client("text field must not be empty".to_string())),
+            None => return Err(Error::Api("text field must not be empty".to_string())),
             Some(text) => {
                 if text.is_empty() || text.first().unwrap().is_empty() {
-                    return Err(Error::Client("text field must not be empty".to_string()));
+                    return Err(Error::Api("text field must not be empty".to_string()));
                 }
                 json!(opt)
             }
@@ -157,7 +157,10 @@ impl DeepL {
         let resp = self.post(url).json(&obj).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert_error(resp);
+            return Err(Error::Response(
+                resp.status(),
+                resp.text().unwrap_or_default(),
+            ));
         }
 
         resp.json().map_err(|_| Error::Deserialize)

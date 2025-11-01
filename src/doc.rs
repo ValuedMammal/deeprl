@@ -74,7 +74,7 @@ impl DocumentOptions {
     fn into_multipart(self) -> Result<multipart::Form> {
         let mut form = multipart::Form::new()
             .file("file", self.file_path)
-            .map_err(|_| Error::Client("failed to attach file".to_string()))?
+            .map_err(|_| Error::Api("failed to attach file".to_string()))?
             .text("target_lang", self.target_lang.to_string());
 
         if let Some(src) = self.source_lang {
@@ -139,7 +139,10 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert_error(resp);
+            return Err(Error::Response(
+                resp.status(),
+                resp.text().unwrap_or_default(),
+            ));
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -164,7 +167,10 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert_error(resp);
+            return Err(Error::Response(
+                resp.status(),
+                resp.text().unwrap_or_default(),
+            ));
         }
 
         resp.json().map_err(|_| Error::Deserialize)
@@ -189,7 +195,10 @@ impl DeepL {
             .map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert_error(resp);
+            return Err(Error::Response(
+                resp.status(),
+                resp.text().unwrap_or_default(),
+            ));
         }
 
         // write out file

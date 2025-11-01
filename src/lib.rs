@@ -95,10 +95,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 pub enum Error {
     /// General client side error
     #[error("{0}")]
-    Client(String),
+    Api(String),
     /// Error sent from the server
     #[error("{0}: {1}")]
-    Server(StatusCode, String),
+    Response(StatusCode, String),
     /// Error deserializing response
     #[error("error deserializing response")]
     Deserialize,
@@ -114,12 +114,6 @@ pub enum Error {
     /// Invalid response
     #[error("invalid response")]
     InvalidResponse,
-}
-
-/// Server error type
-#[derive(Debug, Deserialize)]
-struct ServerError {
-    message: String,
 }
 
 /// API usage & account limits. Currently assumes an individual developer account.
@@ -260,13 +254,6 @@ impl DeepL {
 
         Ok(usage)
     }
-}
-
-/// Attempt to parse an error in case of unsuccessful request
-fn convert_error<T>(resp: reqwest::blocking::Response) -> Result<T> {
-    let code = resp.status();
-    let resp: ServerError = resp.json().map_err(|_| Error::InvalidResponse)?;
-    Err(Error::Server(code, resp.message))
 }
 
 #[cfg(test)]

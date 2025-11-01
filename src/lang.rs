@@ -173,7 +173,10 @@ impl DeepL {
         let resp = self.get(url).query(&q).send().map_err(Error::Reqwest)?;
 
         if !resp.status().is_success() {
-            return super::convert_error(resp);
+            return Err(Error::Response(
+                resp.status(),
+                resp.text().unwrap_or_default(),
+            ));
         }
 
         resp.json().map_err(|_| Error::Deserialize)

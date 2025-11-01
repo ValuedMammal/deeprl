@@ -105,7 +105,7 @@ fn translate_error_empty_text() {
         let res = dl.translate(opt);
         assert!(matches!(
             res,
-            Err(Error::Client(s))
+            Err(Error::Api(s))
             if s.contains("empty")
         ));
     }
@@ -274,7 +274,7 @@ fn glossary_all() {
     let resp = dl.glossary_info(&glos_id);
     assert!(matches!(
         resp,
-        Err(Error::Server(code, ..)) if code == StatusCode::NOT_FOUND,
+        Err(Error::Response(code, ..)) if code == StatusCode::NOT_FOUND,
     ));
 }
 
