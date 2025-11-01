@@ -57,6 +57,8 @@ impl Default for LanguageInfo {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING-KEBAB-CASE")]
 pub enum Language {
+    /// Arabic
+    Ar,
     /// Bulgarian
     Bg,
     /// Czech
@@ -75,6 +77,8 @@ pub enum Language {
     EnUs,
     /// Spanish
     Es,
+    /// Spanish (Latin America)
+    Es419,
     /// Estonian
     Et,
     /// Finish
@@ -125,6 +129,8 @@ pub enum Language {
     Zh,
     /// Chinese simplified
     ZhHans,
+    /// Chinese traditional
+    ZhHant,
 }
 
 impl FromStr for Language {
@@ -135,6 +141,7 @@ impl FromStr for Language {
     /// If a [`Language`] cannot be parsed from the input `s`
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lang = match s.to_uppercase().as_str() {
+            "AR" => Language::Ar,
             "BG" => Language::Bg,
             "CS" => Language::Cs,
             "DA" => Language::Da,
@@ -144,6 +151,7 @@ impl FromStr for Language {
             "EN-GB" => Language::EnGb,
             "EN-US" => Language::EnUs,
             "ES" => Language::Es,
+            "ES-419" => Language::Es419,
             "ET" => Language::Et,
             "FI" => Language::Fi,
             "FR" => Language::Fr,
@@ -169,6 +177,7 @@ impl FromStr for Language {
             "UK" => Language::Uk,
             "ZH" => Language::Zh,
             "ZH-HANS" => Language::ZhHans,
+            "ZH-HANT" => Language::ZhHant,
             _ => return Err(Error::InvalidLanguage),
         };
 
@@ -179,6 +188,7 @@ impl FromStr for Language {
 impl AsRef<str> for Language {
     fn as_ref(&self) -> &str {
         match self {
+            Self::Ar => "AR",
             Self::Bg => "BG",
             Self::Cs => "CS",
             Self::Da => "DA",
@@ -188,6 +198,7 @@ impl AsRef<str> for Language {
             Self::EnGb => "EN-GB",
             Self::EnUs => "EN-US",
             Self::Es => "ES",
+            Self::Es419 => "ES-419",
             Self::Et => "ET",
             Self::Fi => "FI",
             Self::Fr => "FR",
@@ -213,6 +224,7 @@ impl AsRef<str> for Language {
             Self::Uk => "UK",
             Self::Zh => "ZH",
             Self::ZhHans => "ZH-HANS",
+            Self::ZhHant => "ZH-HANT",
         }
     }
 }
@@ -237,8 +249,8 @@ impl DeepL {
     /// assert!(!source_langs.is_empty());
     ///
     /// let language = &source_langs[0];
-    /// println!("{}", language.language); // BG
-    /// println!("{}", language.name); // Bulgarian
+    /// println!("{}", language.language);
+    /// println!("{}", language.name);
     ///```
     pub fn languages(&self, lang_type: LanguageType) -> Result<Vec<LanguageInfo>> {
         let url = format!("{}/languages", self.url);
