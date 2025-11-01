@@ -65,13 +65,14 @@ mod glos;
 mod lang;
 mod text;
 
+// Re-exports
 pub use {
     doc::{DocState, Document, DocumentOptions, DocumentStatus},
     glos::{
         GlossariesResult, Glossary, GlossaryEntriesFormat, GlossaryLanguagePair,
         GlossaryLanguagePairsResult,
     },
-    lang::{Language, LanguageInfo, LanguageType},
+    lang::{Language, LanguageInfo, LanguageType, ParseLanguageError},
     text::{Formality, SplitSentences, TagHandling, TextOptions, TranslateTextResult, Translation},
 };
 
@@ -108,8 +109,8 @@ pub enum Error {
     #[error("{0}")]
     Io(io::Error),
     /// Invalid language
-    #[error("invalid language")]
-    InvalidLanguage,
+    #[error("{0}")]
+    InvalidLanguage(#[from] ParseLanguageError),
     /// Invalid response
     #[error("invalid response")]
     InvalidResponse,

@@ -58,7 +58,7 @@ macro_rules! impl_language {
                     $(
                        $upper => Ok(Self::$lang),
                     )*
-                    _ => Err(Error::InvalidLanguage),
+                    _ => Err(crate::lang::ParseLanguageError(s.to_string()))?,
                 }
             }
         }
@@ -129,6 +129,18 @@ impl_language!(
     ZhHans, "ZH-HANS", " Chinese simplified",
     ZhHant, "ZH-HANT", " Chinese traditional",
 );
+
+/// Error attempting to parse a [`Language`] from a string.
+#[derive(Debug)]
+pub struct ParseLanguageError(String);
+
+impl core::fmt::Display for ParseLanguageError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "invalid language: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseLanguageError {}
 
 impl DeepL {
     /// GET /languages
