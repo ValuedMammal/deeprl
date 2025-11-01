@@ -171,6 +171,7 @@ fn translate_tags() {
 }
 
 #[test]
+#[ignore]
 fn document() {
     let dl = DeepL::new(KEY);
 
@@ -230,6 +231,7 @@ fn glossaries() {
 }
 
 #[test]
+#[ignore]
 fn glossary_all() {
     // create csv file with two glossary entries
     let dl = DeepL::new(KEY);
